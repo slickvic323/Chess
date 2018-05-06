@@ -1,6 +1,7 @@
 package com.example.victordasilva.chess;
 
 import com.example.victordasilva.chess.chess_pieces.ChessPiece;
+import com.example.victordasilva.chess.chess_pieces.DarkPawn;
 
 import java.util.ArrayList;
 
@@ -84,22 +85,42 @@ public class GameInfo {
         int x = chosenTile[1];
 
         ArrayList<ArrayList<Integer>> possibleMoves = new ArrayList<ArrayList<Integer>>();
-        if((chosenTile[0] == 6) && !userIsDark) {
-            // Tile 1 above
-            if(boardLayout[y-1][x] == null) {
+
+        // Tile 1 above
+        if(y > 0 && boardLayout[y-1][x] == null) {
+            ArrayList<Integer> newMove = new ArrayList<Integer>();
+            newMove.add(y-1);
+            newMove.add(x);
+            possibleMoves.add(newMove);
+        }
+        // Up Left Diag
+        if(y > 0 && x > 0 && boardLayout[y-1][x-1] != null) {
+            ChessPiece upLeft = boardLayout[y-1][x-1];
+            if(areOppositeColors(userIsDark, upLeft.isDarkPiece)) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
                 newMove.add(y-1);
-                newMove.add(x);
+                newMove.add(x-1);
                 possibleMoves.add(newMove);
             }
+        }
+        // Up Right Diag
+        if(y>0 && x<7 && boardLayout[y-1][x+1] != null) {
+            ChessPiece upRight = boardLayout[y-1][x+1];
+            if(areOppositeColors(userIsDark, upRight.isDarkPiece)) {
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(y-1);
+                newMove.add(x-1);
+                possibleMoves.add(newMove);
+            }
+        }
+        if((boardLayout[y][x].getMadeFirstMove() == false)) {
             // Tile 2 above
-            if(boardLayout[y-2][x] == null) {
+            if(y>1 && boardLayout[y-2][x] == null) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
                 newMove.add(y-2);
                 newMove.add(x);
                 possibleMoves.add(newMove);
             }
-
         }
         return possibleMoves;
     }
@@ -109,7 +130,86 @@ public class GameInfo {
     }
 
     private ArrayList<ArrayList<Integer>> getRookMoves(boolean userIsDark) {
-        return null;
+        int y = chosenTile[0];
+        int x = chosenTile[1];
+        ArrayList<ArrayList<Integer>> possibleMoves = new ArrayList<ArrayList<Integer>>();
+        //Check left
+        for(int i=x-1;i>=0;i--){
+            ChessPiece currentPiece = boardLayout[y][i];
+            //Empty space
+            if(currentPiece == null){
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(y);
+                newMove.add(i);
+                possibleMoves.add(newMove);
+            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece)) {
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(y);
+                newMove.add(i);
+                possibleMoves.add(newMove);
+                break;
+            } else {
+                break;
+            }
+        }
+        // Check right
+        for(int i=x+1;i<8;i++) {
+            ChessPiece currentPiece = boardLayout[y][i];
+            //Empty space
+            if(currentPiece == null){
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(y);
+                newMove.add(i);
+                possibleMoves.add(newMove);
+            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece)) {
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(y);
+                newMove.add(i);
+                possibleMoves.add(newMove);
+                break;
+            } else {
+                break;
+            }
+        }
+        // Check above
+        for(int i=y-1;i>=0;i--) {
+            ChessPiece currentPiece = boardLayout[y][i];
+            //Empty space
+            if(currentPiece == null){
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(y);
+                newMove.add(i);
+                possibleMoves.add(newMove);
+            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece)) {
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(y);
+                newMove.add(i);
+                possibleMoves.add(newMove);
+                break;
+            } else {
+                break;
+            }
+        }
+        // Check below
+        for(int i=y+1;i<8;i++) {
+            ChessPiece currentPiece = boardLayout[y][i];
+            //Empty space
+            if(currentPiece == null){
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(y);
+                newMove.add(i);
+                possibleMoves.add(newMove);
+            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece)) {
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(y);
+                newMove.add(i);
+                possibleMoves.add(newMove);
+                break;
+            } else {
+                break;
+            }
+        }
+        return possibleMoves;
     }
 
     //Getters
@@ -171,4 +271,14 @@ public class GameInfo {
     public void setChosenTile(int[] chosenTile) {
         this.chosenTile = chosenTile;
     }
+
+    private boolean areOppositeColors(boolean isDark1, boolean isDark2) {
+        if(isDark1 && !isDark2){
+            return true;
+        } else if(!isDark1 && isDark2) {
+            return true;
+        }
+        return false;
+    }
+
 }

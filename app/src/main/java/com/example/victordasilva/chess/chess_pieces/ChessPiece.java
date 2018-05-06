@@ -21,6 +21,7 @@ public abstract class ChessPiece {
     private boolean inPlay;
     public String pieceName;
     public boolean isDarkPiece;
+    private boolean madeFirstMove;
 
     //Constructor
     public ChessPiece(Context context, int squareSize, int leftBoard, int topBoard) {
@@ -28,6 +29,7 @@ public abstract class ChessPiece {
         this.leftBoard = leftBoard;
         this.topBoard = topBoard;
         inPlay = true;
+        madeFirstMove = false;
         x = (getxSquare() * getSquareSize()) + leftBoard;
         y = (getySquare() * getSquareSize()) + topBoard;
     }
@@ -74,5 +76,13 @@ public abstract class ChessPiece {
         this.ySquare = ySquare;
         x = (getxSquare() * getSquareSize()) + leftBoard;
         y = (getySquare() * getSquareSize()) + topBoard;
+    }
+
+    public boolean getMadeFirstMove() {
+        return madeFirstMove;
+    }
+
+    public void setMadeFirstMove(boolean madeFirstMove) {
+        this.madeFirstMove = madeFirstMove;
     }
 }
