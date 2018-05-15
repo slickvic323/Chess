@@ -343,6 +343,21 @@ public class GameView extends SurfaceView implements Runnable {
         if(touchedX >= leftBoard && touchedX <= leftBoard + boardSize && touchedY >= topBoard && touchedY <= topBoard + boardSize){
             int xVal = Math.round(touchedX);
             int yVal = Math.round(touchedY);
+            if(possibleMoves != null) {
+                // Check if the player's touch was to make one of the possible moves
+                int[] tempTouchedSquare = checkSquareTouch(xVal, yVal);
+                for(int i=0;i<possibleMoves.size();i++) {
+                    int possibleMoveY = possibleMoves.get(i).get(0);
+                    int possibleMoveX = possibleMoves.get(i).get(1);
+                    // Player Clicked on a possible move square
+                    if(tempTouchedSquare[0] == possibleMoveY && tempTouchedSquare[1] == possibleMoveX) {
+                        Log.i("Move", "Player wants to make move!!!");
+
+                        break;
+                    }
+                }
+            }
+
             touchedSquare = checkSquareTouch(xVal, yVal);
             Log.i("touchedSquare", "Touched Square - Vertical: " + touchedSquare[0] + " Horizontal: " + touchedSquare[1]);
             possibleMoves = gameInfo.getPossibleMoves(touchedSquare);
