@@ -5,6 +5,9 @@ import com.example.victordasilva.chess.chess_pieces.DarkPawn;
 
 import java.util.ArrayList;
 
+import static android.R.attr.x;
+import static android.R.attr.y;
+
 /**
  * Created by victordasilva on 5/2/18.
  */
@@ -66,7 +69,126 @@ public class GameInfo {
     }
 
     private ArrayList<ArrayList<Integer>> getBishopMoves(boolean userIsDark) {
-        return null;
+        int y = chosenTile[0];
+        int x = chosenTile[1];
+
+        ArrayList<ArrayList<Integer>> possibleMoves = new ArrayList<ArrayList<Integer>>();
+
+        // Left Up Diag
+        int count = 1;
+        for(int xCheck=x-1;xCheck>=0;xCheck--) {
+            int yCheck = y - count;
+            if (yCheck >= 0) {
+                if (boardLayout[yCheck][xCheck] == null) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                } else {
+                    // A piece is in the square being checked
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                        ArrayList<Integer> newMove = new ArrayList<Integer>();
+                        newMove.add(yCheck);
+                        newMove.add(xCheck);
+                        possibleMoves.add(newMove);
+                    }
+                    // Break whether or not the piece is the same color or not
+                    break;
+                }
+            } else {
+                // No more squares upwards
+                break;
+            }
+            count++;
+        }
+
+        // Left Down Diag
+        count = 1;
+        for(int xCheck=x-1;xCheck>=0;xCheck--) {
+            int yCheck = y + count;
+            if(yCheck < 8) {
+                if (boardLayout[yCheck][xCheck] == null) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                } else {
+                    // A piece is in the square being checked
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                        ArrayList<Integer> newMove = new ArrayList<Integer>();
+                        newMove.add(yCheck);
+                        newMove.add(xCheck);
+                        possibleMoves.add(newMove);
+                    }
+                    // Break whether or not the piece is the same color or not
+                    break;
+                }
+            } else {
+                // No more squares downwards
+                break;
+            }
+
+            count++;
+        }
+
+        // Right Up Diag
+        count = 1;
+        for(int xCheck=x+1;xCheck<8;xCheck++) {
+            int yCheck = y - count;
+            if (yCheck >= 0) {
+                if (boardLayout[yCheck][xCheck] == null) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                } else {
+                    // A piece is in the square being checked
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                        ArrayList<Integer> newMove = new ArrayList<Integer>();
+                        newMove.add(yCheck);
+                        newMove.add(xCheck);
+                        possibleMoves.add(newMove);
+                    }
+                    // Break whether or not the piece is the same color or not
+                    break;
+                }
+            } else {
+                // No more squares upwards
+                break;
+            }
+            count++;
+        }
+
+        // Right Down Diag
+        count = 1;
+        for(int xCheck=x+1;xCheck<8;xCheck++) {
+            int yCheck = y + count;
+            if(yCheck < 8) {
+                if (boardLayout[yCheck][xCheck] == null) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                } else {
+                    // A piece is in the square being checked
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                        ArrayList<Integer> newMove = new ArrayList<Integer>();
+                        newMove.add(yCheck);
+                        newMove.add(xCheck);
+                        possibleMoves.add(newMove);
+                    }
+                    // Break whether or not the piece is the same color or not
+                    break;
+                }
+            } else {
+                // No more squares downwards
+                break;
+            }
+
+            count++;
+        }
+
+        return possibleMoves;
     }
 
     private ArrayList<ArrayList<Integer>> getKingMoves(boolean userIsDark) {
@@ -126,7 +248,210 @@ public class GameInfo {
     }
 
     private ArrayList<ArrayList<Integer>> getQueenMoves(boolean userIsDark) {
-        return null;
+        int y = chosenTile[0];
+        int x = chosenTile[1];
+
+        ArrayList<ArrayList<Integer>> possibleMoves = new ArrayList<ArrayList<Integer>>();
+
+        // Get all possible left moves
+        for(int xCheck=x-1;xCheck>=0;xCheck--) {
+            int yCheck = y;
+            if (boardLayout[yCheck][xCheck] == null) {
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(yCheck);
+                newMove.add(xCheck);
+                possibleMoves.add(newMove);
+            } else {
+                // A piece is in the square being checked
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                }
+                // Break whether or not the piece is the same color or not
+                break;
+            }
+        }
+
+        // Left Up Diag
+        int count = 1;
+        for(int xCheck=x-1;xCheck>=0;xCheck--) {
+            int yCheck = y - count;
+            if (yCheck >= 0) {
+                if (boardLayout[yCheck][xCheck] == null) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                } else {
+                    // A piece is in the square being checked
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                        ArrayList<Integer> newMove = new ArrayList<Integer>();
+                        newMove.add(yCheck);
+                        newMove.add(xCheck);
+                        possibleMoves.add(newMove);
+                    }
+                    // Break whether or not the piece is the same color or not
+                    break;
+                }
+            } else {
+                // No more squares upwards
+                break;
+            }
+            count++;
+        }
+
+        // Left Down Diag
+        count = 1;
+        for(int xCheck=x-1;xCheck>=0;xCheck--) {
+            int yCheck = y + count;
+            if(yCheck < 8) {
+                if (boardLayout[yCheck][xCheck] == null) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                } else {
+                    // A piece is in the square being checked
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                        ArrayList<Integer> newMove = new ArrayList<Integer>();
+                        newMove.add(yCheck);
+                        newMove.add(xCheck);
+                        possibleMoves.add(newMove);
+                    }
+                    // Break whether or not the piece is the same color or not
+                    break;
+                }
+            } else {
+                // No more squares downwards
+                break;
+            }
+
+            count++;
+        }
+
+        // Get all possible right moves
+        for(int xCheck=x+1;xCheck<8;xCheck++) {
+            int yCheck = y;
+            if (boardLayout[yCheck][xCheck] == null) {
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(yCheck);
+                newMove.add(xCheck);
+                possibleMoves.add(newMove);
+            } else {
+                // A piece is in the square being checked
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                }
+                // Break whether or not the piece is the same color or not
+                break;
+            }
+        }
+
+        // Right Up Diag
+        count = 1;
+        for(int xCheck=x+1;xCheck<8;xCheck++) {
+            int yCheck = y - count;
+            if (yCheck >= 0) {
+                if (boardLayout[yCheck][xCheck] == null) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                } else {
+                    // A piece is in the square being checked
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                        ArrayList<Integer> newMove = new ArrayList<Integer>();
+                        newMove.add(yCheck);
+                        newMove.add(xCheck);
+                        possibleMoves.add(newMove);
+                    }
+                    // Break whether or not the piece is the same color or not
+                    break;
+                }
+            } else {
+                // No more squares upwards
+                break;
+            }
+            count++;
+        }
+
+        // Right Down Diag
+        count = 1;
+        for(int xCheck=x+1;xCheck<8;xCheck++) {
+            int yCheck = y + count;
+            if(yCheck < 8) {
+                if (boardLayout[yCheck][xCheck] == null) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                } else {
+                    // A piece is in the square being checked
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                        ArrayList<Integer> newMove = new ArrayList<Integer>();
+                        newMove.add(yCheck);
+                        newMove.add(xCheck);
+                        possibleMoves.add(newMove);
+                    }
+                    // Break whether or not the piece is the same color or not
+                    break;
+                }
+            } else {
+                // No more squares downwards
+                break;
+            }
+
+            count++;
+        }
+
+        // Check directly above
+        for(int yCheck=y-1;yCheck>=0;yCheck--) {
+            int xCheck = x;
+            if (boardLayout[yCheck][xCheck] == null) {
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(yCheck);
+                newMove.add(xCheck);
+                possibleMoves.add(newMove);
+            } else {
+                // A piece is in the square being checked
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                }
+                // Break whether or not the piece is the same color or not
+                break;
+            }
+        }
+
+        // Check directly below
+        for(int yCheck=y+1;yCheck<8;yCheck++) {
+            int xCheck = x;
+            if (boardLayout[yCheck][xCheck] == null) {
+                ArrayList<Integer> newMove = new ArrayList<Integer>();
+                newMove.add(yCheck);
+                newMove.add(xCheck);
+                possibleMoves.add(newMove);
+            } else {
+                // A piece is in the square being checked
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    ArrayList<Integer> newMove = new ArrayList<Integer>();
+                    newMove.add(yCheck);
+                    newMove.add(xCheck);
+                    possibleMoves.add(newMove);
+                }
+                // Break whether or not the piece is the same color or not
+                break;
+            }
+        }
+
+        return possibleMoves;
     }
 
     private ArrayList<ArrayList<Integer>> getRookMoves(boolean userIsDark) {
