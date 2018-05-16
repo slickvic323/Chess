@@ -25,7 +25,7 @@ public class GameInfo {
         this.boardLayout = boardLayout;
         this.userColor = userColor;
         this.timeForTurns = timeForTurns;
-        whoseTurn = "Dark";
+        whoseTurn = "Light";
     }
 
     // Returns an array list of all of the possible tiles that the user can move to

@@ -238,41 +238,49 @@ public class GameView extends SurfaceView implements Runnable {
             int xVal = Math.round(touchedX);
             int yVal = Math.round(touchedY);
             boolean madeMove = false;
-            if(possibleMoves != null) {
-                // Check if the player's touch was to make one of the possible moves
-                int[] tempTouchedSquare = checkSquareTouch(xVal, yVal);
-                for(int i=0;i<possibleMoves.size();i++) {
-                    int possibleMoveY = possibleMoves.get(i).get(0);
-                    int possibleMoveX = possibleMoves.get(i).get(1);
-                    // Player Clicked on a possible move square
-                    if(tempTouchedSquare[0] == possibleMoveY && tempTouchedSquare[1] == possibleMoveX) {
-                        Log.i("Move", "Player wants to make move!!!");
-                        // Move the selected piece to the empty space that was selected
-                        if(boardLayout[tempTouchedSquare[0]][tempTouchedSquare[1]] == null) {
-                            ChessPiece movingPiece = boardLayout[touchedSquare[0]][touchedSquare[1]];
-                            boardLayout[tempTouchedSquare[0]][tempTouchedSquare[1]] = movingPiece;
-                            boardLayout[touchedSquare[0]][touchedSquare[1]] = null;
-                            movingPiece.updatePosition(tempTouchedSquare[1], tempTouchedSquare[0]);
-                            madeMove = true;
-                        } else {
-                            // Check that the piece is of the opposite color
-                            ChessPiece movingPiece = boardLayout[touchedSquare[0]][touchedSquare[1]];
-                            ChessPiece enemyPiece = boardLayout[tempTouchedSquare[0]][tempTouchedSquare[1]];
-                            if(areOppositeColors(enemyPiece.isDarkPiece(), movingPiece.isDarkPiece())) {
+            if(gameInfo.getWhoseTurn().equals(gameInfo.getUserColor())) {
+                if(possibleMoves != null) {
+                    // Check if the player's touch was to make one of the possible moves
+                    int[] tempTouchedSquare = checkSquareTouch(xVal, yVal);
+                    for(int i=0;i<possibleMoves.size();i++) {
+                        int possibleMoveY = possibleMoves.get(i).get(0);
+                        int possibleMoveX = possibleMoves.get(i).get(1);
+                        // Player Clicked on a possible move square
+                        if(tempTouchedSquare[0] == possibleMoveY && tempTouchedSquare[1] == possibleMoveX) {
+                            Log.i("Move", "Player wants to make move!!!");
+                            // Move the selected piece to the empty space that was selected
+                            if(boardLayout[tempTouchedSquare[0]][tempTouchedSquare[1]] == null) {
+                                ChessPiece movingPiece = boardLayout[touchedSquare[0]][touchedSquare[1]];
                                 boardLayout[tempTouchedSquare[0]][tempTouchedSquare[1]] = movingPiece;
                                 boardLayout[touchedSquare[0]][touchedSquare[1]] = null;
                                 movingPiece.updatePosition(tempTouchedSquare[1], tempTouchedSquare[0]);
-                                // Enemy Piece is taken down
-                                enemyPiece.setInPlay(false);
                                 madeMove = true;
+                            } else {
+                                // Check that the piece is of the opposite color
+                                ChessPiece movingPiece = boardLayout[touchedSquare[0]][touchedSquare[1]];
+                                ChessPiece enemyPiece = boardLayout[tempTouchedSquare[0]][tempTouchedSquare[1]];
+                                if(areOppositeColors(enemyPiece.isDarkPiece(), movingPiece.isDarkPiece())) {
+                                    boardLayout[tempTouchedSquare[0]][tempTouchedSquare[1]] = movingPiece;
+                                    boardLayout[touchedSquare[0]][touchedSquare[1]] = null;
+                                    movingPiece.updatePosition(tempTouchedSquare[1], tempTouchedSquare[0]);
+                                    // Enemy Piece is taken down
+                                    enemyPiece.setInPlay(false);
+                                    madeMove = true;
+                                }
                             }
-
+                            break;
                         }
-                        break;
                     }
                 }
             }
             if(madeMove) {
+                if(gameInfo.getUserColor().equals("Dark")) {
+                    // Change the turn to Light user
+                    gameInfo.setWhoseTurn("Light");
+                } else if(gameInfo.getUserColor().equals("Light")) {
+                    // Change the turn to the Dark user
+                    gameInfo.setWhoseTurn("Dark");
+                }
                 touchedSquare = null;
             } else {
                 touchedSquare = checkSquareTouch(xVal, yVal);
