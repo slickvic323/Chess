@@ -5,9 +5,6 @@ import com.example.victordasilva.chess.chess_pieces.DarkPawn;
 
 import java.util.ArrayList;
 
-import static android.R.attr.x;
-import static android.R.attr.y;
-
 /**
  * Created by victordasilva on 5/2/18.
  */
@@ -34,13 +31,16 @@ public class GameInfo {
     // Returns an array list of all of the possible tiles that the user can move to
     public ArrayList<ArrayList<Integer>> getPossibleMoves(int[] chosenTile){
         this.chosenTile = chosenTile;
+        if(chosenTile == null) {
+            return null;
+        }
         ArrayList<ArrayList<Integer>> possibleMoves = new ArrayList<ArrayList<Integer>>();
         if(boardLayout[chosenTile[0]][chosenTile[1]] == null) {
             return possibleMoves;
         }
         ChessPiece userPiece = boardLayout[chosenTile[0]][chosenTile[1]];
         String pieceName = userPiece.getPieceName();
-        boolean isDarkPiece = userPiece.isDarkPiece;
+        boolean isDarkPiece = userPiece.isDarkPiece();
         if((userColor.equals("Dark") && isDarkPiece) || (userColor.equals("Light") && !isDarkPiece)) {
             switch (pieceName) {
                 case "Bishop":
@@ -86,7 +86,7 @@ public class GameInfo {
                     possibleMoves.add(newMove);
                 } else {
                     // A piece is in the square being checked
-                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                         ArrayList<Integer> newMove = new ArrayList<Integer>();
                         newMove.add(yCheck);
                         newMove.add(xCheck);
@@ -114,7 +114,7 @@ public class GameInfo {
                     possibleMoves.add(newMove);
                 } else {
                     // A piece is in the square being checked
-                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                         ArrayList<Integer> newMove = new ArrayList<Integer>();
                         newMove.add(yCheck);
                         newMove.add(xCheck);
@@ -143,7 +143,7 @@ public class GameInfo {
                     possibleMoves.add(newMove);
                 } else {
                     // A piece is in the square being checked
-                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                         ArrayList<Integer> newMove = new ArrayList<Integer>();
                         newMove.add(yCheck);
                         newMove.add(xCheck);
@@ -171,7 +171,7 @@ public class GameInfo {
                     possibleMoves.add(newMove);
                 } else {
                     // A piece is in the square being checked
-                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                         ArrayList<Integer> newMove = new ArrayList<Integer>();
                         newMove.add(yCheck);
                         newMove.add(xCheck);
@@ -210,7 +210,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -229,7 +229,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -248,7 +248,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -267,7 +267,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -286,7 +286,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -305,7 +305,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -324,7 +324,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -343,7 +343,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -372,7 +372,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -391,7 +391,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -410,7 +410,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -429,7 +429,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -448,7 +448,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -467,7 +467,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -486,7 +486,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -505,7 +505,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -532,7 +532,7 @@ public class GameInfo {
         // Up Left Diag
         if(y > 0 && x > 0 && boardLayout[y-1][x-1] != null) {
             ChessPiece upLeft = boardLayout[y-1][x-1];
-            if(areOppositeColors(userIsDark, upLeft.isDarkPiece)) {
+            if(areOppositeColors(userIsDark, upLeft.isDarkPiece())) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
                 newMove.add(y-1);
                 newMove.add(x-1);
@@ -542,14 +542,14 @@ public class GameInfo {
         // Up Right Diag
         if(y>0 && x<7 && boardLayout[y-1][x+1] != null) {
             ChessPiece upRight = boardLayout[y-1][x+1];
-            if(areOppositeColors(userIsDark, upRight.isDarkPiece)) {
+            if(areOppositeColors(userIsDark, upRight.isDarkPiece())) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
                 newMove.add(y-1);
                 newMove.add(x-1);
                 possibleMoves.add(newMove);
             }
         }
-        if((boardLayout[y][x].getMadeFirstMove() == false)) {
+        if((boardLayout[y][x].hasMadeFirstMove() == false)) {
             // Tile 2 above
             if(y>1 && boardLayout[y-2][x] == null) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
@@ -577,7 +577,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -600,7 +600,7 @@ public class GameInfo {
                     possibleMoves.add(newMove);
                 } else {
                     // A piece is in the square being checked
-                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                         ArrayList<Integer> newMove = new ArrayList<Integer>();
                         newMove.add(yCheck);
                         newMove.add(xCheck);
@@ -628,7 +628,7 @@ public class GameInfo {
                     possibleMoves.add(newMove);
                 } else {
                     // A piece is in the square being checked
-                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                         ArrayList<Integer> newMove = new ArrayList<Integer>();
                         newMove.add(yCheck);
                         newMove.add(xCheck);
@@ -655,7 +655,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -678,7 +678,7 @@ public class GameInfo {
                     possibleMoves.add(newMove);
                 } else {
                     // A piece is in the square being checked
-                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                         ArrayList<Integer> newMove = new ArrayList<Integer>();
                         newMove.add(yCheck);
                         newMove.add(xCheck);
@@ -706,7 +706,7 @@ public class GameInfo {
                     possibleMoves.add(newMove);
                 } else {
                     // A piece is in the square being checked
-                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                    if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                         ArrayList<Integer> newMove = new ArrayList<Integer>();
                         newMove.add(yCheck);
                         newMove.add(xCheck);
@@ -733,7 +733,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -754,7 +754,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             } else {
                 // A piece is in the square being checked
-                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece, userIsDark)) {
+                if (areOppositeColors(boardLayout[yCheck][xCheck].isDarkPiece(), userIsDark)) {
                     ArrayList<Integer> newMove = new ArrayList<Integer>();
                     newMove.add(yCheck);
                     newMove.add(xCheck);
@@ -781,7 +781,7 @@ public class GameInfo {
                 newMove.add(y);
                 newMove.add(i);
                 possibleMoves.add(newMove);
-            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece)) {
+            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece())) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
                 newMove.add(y);
                 newMove.add(i);
@@ -800,7 +800,7 @@ public class GameInfo {
                 newMove.add(y);
                 newMove.add(i);
                 possibleMoves.add(newMove);
-            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece)) {
+            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece())) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
                 newMove.add(y);
                 newMove.add(i);
@@ -819,7 +819,7 @@ public class GameInfo {
                 newMove.add(y);
                 newMove.add(i);
                 possibleMoves.add(newMove);
-            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece)) {
+            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece())) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
                 newMove.add(y);
                 newMove.add(i);
@@ -838,7 +838,7 @@ public class GameInfo {
                 newMove.add(y);
                 newMove.add(i);
                 possibleMoves.add(newMove);
-            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece)) {
+            } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece())) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
                 newMove.add(y);
                 newMove.add(i);
