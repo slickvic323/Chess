@@ -6,6 +6,7 @@ import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
@@ -39,6 +40,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.R.id.message;
+
 public class ConnectActivity extends AppCompatActivity {
 
     IntentFilter mIntentFilter;
@@ -62,6 +65,8 @@ public class ConnectActivity extends AppCompatActivity {
     ServerClass serverClass;
     ClientClass clientClass;
     SendReceive sendReceive;
+
+    PlayerInfo playerInfo;
 
     public WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
         @Override
@@ -94,10 +99,12 @@ public class ConnectActivity extends AppCompatActivity {
 
             if(wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner) {
                 // This is the host of the group
+                playerInfo = new PlayerInfo(userNameText.getText().toString(), "Dark");
                 serverClass = new ServerClass();
                 serverClass.start();
             } else if(wifiP2pInfo.groupFormed) {
                 // This is the client
+                playerInfo = new PlayerInfo(userNameText.getText().toString(), "Light");
                 clientClass = new ClientClass(groupOwnerAddress);
                 clientClass.start();
             }
@@ -119,12 +126,15 @@ public class ConnectActivity extends AppCompatActivity {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         setupUIPieces();
+        setListeners();
 
         setup();
     }
 
     private void setupUIPieces() {
         searchButton = (Button) findViewById(R.id.search_button);
+        searchButton.setVisibility(View.GONE);
+
         playButton = (Button) findViewById(R.id.play_button);
         enterNameButton = (Button) findViewById(R.id.set_name_button);
 
@@ -137,7 +147,30 @@ public class ConnectActivity extends AppCompatActivity {
         opponentNameText = (TextView) findViewById(R.id.opponent_username_text);
 
         userInfoLayout = (TableLayout) findViewById(R.id.userInfoLayout);
+        userInfoLayout.setVisibility(View.GONE);
     }
+
+    private void setListeners() {
+        enterNameButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String tempName = nameTextBox.getText().toString();
+                if(!tempName.isEmpty() && tempName.length() <= 10) {
+                    userNameText.setText(tempName);
+                    userInfoLayout.setVisibility(View.VISIBLE);
+                    searchButton.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        playButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendOpponentName();
+            }
+        });
+    }
+
 
     @Override
     public void onResume() {
@@ -209,7 +242,22 @@ public class ConnectActivity extends AppCompatActivity {
                         JSONObject jsonObject = (JSONObject) parser.parse(tempMsg);
                         long messageType = (long) jsonObject.get("message_type");
                         Log.i("Message type", String.valueOf(messageType));
-                        Toast.makeText(getApplicationContext(), "Message Type: " + messageType, Toast.LENGTH_SHORT).show();
+                        if(messageType == 1) {
+                            // Setting opponent's name
+                            String opponentName = (String) jsonObject.get("name");
+                            opponentNameText.setText(opponentName);
+
+                            // Setting opponent's picture
+                            String opponentColor = (String) jsonObject.get("color");
+                            if(opponentColor.equals("Dark")) {
+                                userImage.setImageResource(R.drawable.light_pawn);
+                                opponentImage.setImageResource(R.drawable.dark_pawn);
+                            } else if(opponentColor.equals("Light")) {
+                                userImage.setImageResource(R.drawable.dark_pawn);
+                                opponentImage.setImageResource(R.drawable.light_pawn);
+                            }
+                        }
+
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
@@ -290,7 +338,7 @@ public class ConnectActivity extends AppCompatActivity {
         @Override
         public void run() {
             try {
-                socket.connect(new InetSocketAddress(hostAddress, 8888), 500);
+                socket.connect(new InetSocketAddress(hostAddress, 8888), 10000);
                 sendReceive = new SendReceive(socket);
                 sendReceive.start();
                 sendOpponentName();
@@ -302,7 +350,9 @@ public class ConnectActivity extends AppCompatActivity {
 
     public void sendOpponentName() {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("message_type", 5);
+        jsonObject.put("message_type", 1);
+        jsonObject.put("name", userNameText.getText().toString());
+        jsonObject.put("color", playerInfo.getColor());
         String message = jsonObject.toString();
         sendReceive.write(message.getBytes());
     }

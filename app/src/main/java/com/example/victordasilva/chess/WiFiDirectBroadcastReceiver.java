@@ -62,6 +62,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver{
                     manager.connect(channel, config, new WifiP2pManager.ActionListener() {
                         @Override
                         public void onSuccess() {
+                            Log.i("DEVICE", device.primaryDeviceType);
                             Toast.makeText(activity.getApplicationContext(), "Connected to " + device.deviceName, Toast.LENGTH_SHORT).show();
                             numFails = 0;
                         }
