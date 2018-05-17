@@ -13,6 +13,8 @@ import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.net.InetAddress;
+
 
 /**
  * Created by victordasilva on 5/16/18.

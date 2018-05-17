@@ -17,9 +17,17 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TableLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONObject;
+
+import org.json.simple.parser.JSONParser;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +46,12 @@ public class ConnectActivity extends AppCompatActivity {
     WifiP2pManager mManager;
     BroadcastReceiver mReceiver;
 
-    Button searchButton;
+    Button searchButton, playButton, enterNameButton;
+    EditText nameTextBox;
+    TableLayout userInfoLayout;
+    ImageView userImage, opponentImage;
+    TextView userNameText, opponentNameText;
+
 
     List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     String[] deviceNameArray;
@@ -105,8 +118,25 @@ public class ConnectActivity extends AppCompatActivity {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
-        searchButton = (Button) findViewById(R.id.search_button);
+        setupUIPieces();
+
         setup();
+    }
+
+    private void setupUIPieces() {
+        searchButton = (Button) findViewById(R.id.search_button);
+        playButton = (Button) findViewById(R.id.play_button);
+        enterNameButton = (Button) findViewById(R.id.set_name_button);
+
+        userImage = (ImageView) findViewById(R.id.user_image);
+        opponentImage = (ImageView) findViewById(R.id.opponent_image);
+
+        nameTextBox = (EditText) findViewById(R.id.name_text_box);
+
+        userNameText = (TextView) findViewById(R.id.username_text);
+        opponentNameText = (TextView) findViewById(R.id.opponent_username_text);
+
+        userInfoLayout = (TableLayout) findViewById(R.id.userInfoLayout);
     }
 
     @Override
@@ -174,6 +204,15 @@ public class ConnectActivity extends AppCompatActivity {
                     byte[] readBuff = (byte[]) msg.obj;
                     String tempMsg = new String(readBuff, 0, msg.arg1);
                     Log.i("TempMessage", tempMsg);
+                    JSONParser parser = new JSONParser();
+                    try {
+                        JSONObject jsonObject = (JSONObject) parser.parse(tempMsg);
+                        long messageType = (long) jsonObject.get("message_type");
+                        Log.i("Message type", String.valueOf(messageType));
+                        Toast.makeText(getApplicationContext(), "Message Type: " + messageType, Toast.LENGTH_SHORT).show();
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                     break;
             }
             return true;
@@ -262,7 +301,9 @@ public class ConnectActivity extends AppCompatActivity {
     }
 
     public void sendOpponentName() {
-        String tempName = "temporaryName";
-        sendReceive.write(tempName.getBytes());
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("message_type", 5);
+        String message = jsonObject.toString();
+        sendReceive.write(message.getBytes());
     }
 }

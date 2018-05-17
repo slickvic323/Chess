@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -13,6 +15,97 @@
         android:text="Connect"
         android:textAlignment="center"
         android:textSize="30sp" />
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <EditText
+            android:id="@+id/name_text_box"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:ems="10"
+            android:hint="Please Enter Your Name"
+            android:inputType="textPersonName"
+            app:layout_constraintEnd_toStartOf="@+id/set_name_button"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/set_name_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:text="Enter"
+            app:layout_constraintBaseline_toBaselineOf="@+id/name_text_box"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/name_text_box" />
+    </android.support.constraint.ConstraintLayout>
+
+    <TableLayout
+        android:id="@+id/userInfoLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:layout_marginTop="30dp">
+        <TableRow>
+            <TextView
+                android:id="@+id/username_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_column="1"
+                android:text="My UserName"
+                android:background="@drawable/border_style"
+                android:textAlignment="center"
+                android:layout_marginBottom="25dp"/>
+            <TextView
+                android:id="@+id/opponent_username_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_column="2"
+                android:text="Opponent's Name"
+                android:background="@drawable/border_style"
+                android:textAlignment="center"
+                android:layout_marginBottom="25dp"/>
+        </TableRow>
+
+        <TableRow>
+            <ImageView
+                android:id="@+id/user_image"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_column="1"
+                app:srcCompat="@drawable/red_x" />
+            <ImageView
+                android:id="@+id/opponent_image"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_column="2"
+                app:srcCompat="@drawable/red_x" />
+        </TableRow>
+
+        <TableRow>
+            <Button
+                android:id="@+id/play_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_column="1"
+                android:layout_weight="1"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="30dp"
+                android:layout_marginLeft="30dp"
+                android:text="Play" />
+        </TableRow>
+    </TableLayout>
 
     <Button
         android:id="@+id/search_button"
