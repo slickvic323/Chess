@@ -1,9 +1,14 @@
 package com.example.victordasilva.chess;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.net.wifi.p2p.WifiP2pInfo;
+import android.net.wifi.p2p.WifiP2pManager;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -25,7 +30,20 @@ import com.example.victordasilva.chess.chess_pieces.LightQueen;
 import com.example.victordasilva.chess.chess_pieces.LightRook;
 import com.example.victordasilva.chess.chess_pieces.PurpleHighlightImage;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
+
+import static com.example.victordasilva.chess.ConnectActivity.MESSAGE_READ;
 
 /**
  * Created by victordasilva on 5/1/18.
@@ -86,9 +104,38 @@ public class GameView extends SurfaceView implements Runnable {
     private Canvas canvas;
     private SurfaceHolder surfaceHolder;
 
+    public ServerClass serverClass;
+    public ClientClass clientClass;
+    public SendReceive sendReceive;
+    WifiP2pManager mManager;
+    WifiP2pManager.Channel mChannel;
+
     //Class constructor
-    public GameView(Context context, int screenSizeX, int screenSizeY) {
+    public GameView(Context context, int screenSizeX, int screenSizeY, WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
         super(context);
+        this.mManager = mManager;
+        this.mChannel = mChannel;
+        mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
+            @Override
+            public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
+                final InetAddress groupOwnerAddress = wifiP2pInfo.groupOwnerAddress;
+
+                if(wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner) {
+                    // This is the host of the group
+                    serverClass = new ServerClass();
+                    serverClass.start();
+                    Log.i("ServerClassAlive", String.valueOf(serverClass.isAlive()));
+                } else if(wifiP2pInfo.groupFormed) {
+                    // This is the client
+                    clientClass = new ClientClass(groupOwnerAddress);
+                    clientClass.start();
+                    Log.i("ClientClassAlive", String.valueOf(clientClass.isAlive()));
+                }
+            }
+        });
+
+
+
         this.context = context;
         this.screenSizeX = screenSizeX;
         this.screenSizeY = screenSizeY;
@@ -111,7 +158,12 @@ public class GameView extends SurfaceView implements Runnable {
         //Initializing Drawing Objects
         surfaceHolder = getHolder();
         paint = new Paint();
+
     }
+
+//    public void setSendReceive(GamePlayActivity.SendReceive sendReceive) {
+//        this.sendReceive = sendReceive;
+//    }
 
     @Override
     public void run() {
@@ -138,7 +190,7 @@ public class GameView extends SurfaceView implements Runnable {
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
-                movementTouchDetected = true;
+                //movementTouchDetected = true;
                 break;
             default:
                 break;
@@ -268,6 +320,7 @@ public class GameView extends SurfaceView implements Runnable {
                                     madeMove = true;
                                 }
                             }
+                            sendMoveToOpponent();
                             break;
                         }
                     }
@@ -289,6 +342,133 @@ public class GameView extends SurfaceView implements Runnable {
             possibleMoves = gameInfo.getPossibleMoves(touchedSquare);
         }
     }
+
+    private void sendMoveToOpponent() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("message_type", 2);
+        jsonObject.put("move", "Player just sent you their move");
+        String message = jsonObject.toString();
+        sendReceive.write(message.getBytes());
+    }
+
+
+    public class ServerClass extends Thread {
+        Socket socket;
+        ServerSocket serverSocket;
+
+        @Override
+        public void run() {
+            try {
+                Log.i("ServerClass", "In the run method");
+                serverSocket = new ServerSocket(8000);
+                socket = serverSocket.accept();
+                sendReceive = new SendReceive(socket);
+                sendReceive.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public class SendReceive extends Thread{
+        private Socket socket;
+        private InputStream inputStream;
+        private OutputStream outputStream;
+
+        public SendReceive(Socket skt) {
+            socket = skt;
+            try {
+                inputStream = socket.getInputStream();
+                outputStream = socket.getOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void run() {
+            Log.i("SendReceive", "In the Run Method");
+            byte[] buffer = new byte[1024];
+            int bytes;
+
+            while (socket!=null) {
+                try {
+                    bytes = inputStream.read(buffer);
+                    if(bytes > 0) {
+                        handler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+                    }
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void write(byte[] bytes) {
+            try {
+                outputStream.write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public class ClientClass extends Thread {
+        Socket socket;
+        String hostAddress;
+
+        public ClientClass(InetAddress hostAddress) {
+            this.hostAddress = hostAddress.getHostAddress();
+            socket = new Socket();
+        }
+
+        @Override
+        public void run() {
+            Log.i("ClientClass", "In the Run Method");
+            try {
+                while(!socket.isConnected()) {
+                    socket.connect(new InetSocketAddress(hostAddress, 8000), 10000);
+                    sendReceive = new SendReceive(socket);
+                    sendReceive.start();
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            //TODO
+            switch (msg.what) {
+                case MESSAGE_READ:
+                    byte[] readBuff = (byte[]) msg.obj;
+                    String tempMsg = new String(readBuff, 0, msg.arg1);
+                    Log.i("TempMessage", tempMsg);
+                    JSONParser parser = new JSONParser();
+                    try {
+                        JSONObject jsonObject = (JSONObject) parser.parse(tempMsg);
+                        long messageType = (long) jsonObject.get("message_type");
+                        Log.i("Message type", String.valueOf(messageType));
+                        if(messageType == 1) {
+
+                        } else if(messageType == 2) {
+                            String note = (String) jsonObject.get("move");
+                            Log.i("Note", note);
+                        }
+
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+            }
+            return true;
+        }
+    });
+
+
+
 
     private boolean areOppositeColors(boolean isDark1, boolean isDark2) {
         if(isDark1 && !isDark2){

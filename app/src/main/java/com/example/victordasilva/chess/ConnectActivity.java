@@ -2,6 +2,7 @@ package com.example.victordasilva.chess;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -33,6 +34,7 @@ import org.w3c.dom.Text;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -67,6 +69,10 @@ public class ConnectActivity extends AppCompatActivity {
     SendReceive sendReceive;
 
     PlayerInfo playerInfo;
+
+    Intent startGameIntent;
+
+    private boolean gameServerReady = false;
 
     public WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
         @Override
@@ -136,6 +142,7 @@ public class ConnectActivity extends AppCompatActivity {
         searchButton.setVisibility(View.GONE);
 
         playButton = (Button) findViewById(R.id.play_button);
+        playButton.setVisibility(View.GONE);
         enterNameButton = (Button) findViewById(R.id.set_name_button);
 
         userImage = (ImageView) findViewById(R.id.user_image);
@@ -166,7 +173,44 @@ public class ConnectActivity extends AppCompatActivity {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendOpponentName();
+                // TODO
+
+                if(serverClass!=null) {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("message_type", 3);
+                    jsonObject.put("server_ready", true);
+                    String message = jsonObject.toString();
+                    sendReceive.write(message.getBytes());
+                    gameServerReady = true;
+                }
+
+                if(gameServerReady) {
+                    // Destroy the previous socket threads
+                    if(sendReceive!=null) {
+                        sendReceive.setStopThreadVariable(true);
+                        sendReceive.socket = null;
+                        sendReceive = null;
+                    }
+                    if(serverClass!=null) {
+                        serverClass.setStopThreadVariable(true);
+                        serverClass.socket = null;
+                        serverClass = null;
+                    }
+                    if(clientClass!=null) {
+                        clientClass.setStopThreadVariable(true);
+                        clientClass.socket = null;
+                        clientClass = null;
+                    }
+                    if(handler != null) {
+                        handler = null;
+                    }
+
+                    startGameIntent = new Intent(ConnectActivity.this, GamePlayActivity.class);
+                    startGameIntent.putExtra("playerInfo", playerInfo);
+                    startActivity(startGameIntent);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Wait for other player to be ready", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -181,29 +225,34 @@ public class ConnectActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        unregisterReceiver(mReceiver);
-        mManager.cancelConnect(mChannel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                // Successfully disconnected
-            }
 
-            @Override
-            public void onFailure(int i) {
-                // Unsuccessfully disconnected
-            }
-        });
-        mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
+        if(startGameIntent == null) {
+            unregisterReceiver(mReceiver);
+            mManager.cancelConnect(mChannel, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                    // Successfully disconnected
+                    Log.i("connectionInfo", "Cancel Connect Successful");
+                }
 
-            }
+                @Override
+                public void onFailure(int i) {
+                    // Unsuccessfully disconnected
+                    Log.i("connectionInfo", "Cancel Connect Failed");
+                }
+            });
+            mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                    Log.i("connectionInfo", "Removed Group Successfully");
+                }
 
-            @Override
-            public void onFailure(int i) {
-
-            }
-        });
+                @Override
+                public void onFailure(int i) {
+                    Log.i("connectionInfo", "Remove Group Failed");
+                }
+            });
+        }
     }
 
     private void setup() {
@@ -256,6 +305,9 @@ public class ConnectActivity extends AppCompatActivity {
                                 userImage.setImageResource(R.drawable.dark_pawn);
                                 opponentImage.setImageResource(R.drawable.light_pawn);
                             }
+                            playButton.setVisibility(View.VISIBLE);
+                        } else if(messageType == 3) {
+                            gameServerReady = (boolean) jsonObject.get("server_ready");
                         }
 
                     } catch (ParseException e) {
@@ -271,30 +323,46 @@ public class ConnectActivity extends AppCompatActivity {
         Socket socket;
         ServerSocket serverSocket;
 
+        private boolean stopThreadVariable = false;
+
+        public void setStopThreadVariable(boolean stopThreadVariable) {
+            this.stopThreadVariable = stopThreadVariable;
+        }
+
         @Override
         public void run() {
             try {
-                serverSocket = new ServerSocket(8888);
-                socket = serverSocket.accept();
-                sendReceive = new SendReceive(socket);
-                sendReceive.start();
-                sendOpponentName();
+                while(!stopThreadVariable) {
+                    serverSocket = new ServerSocket(8888);
+                    socket = serverSocket.accept();
+                    sendReceive = new SendReceive(socket);
+                    sendReceive.start();
+                    sendOpponentName();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private class SendReceive extends Thread {
+    public class SendReceive extends Thread{
         private Socket socket;
         private InputStream inputStream;
         private OutputStream outputStream;
 
+        private boolean stopThreadVariable = false;
+
+        public void setStopThreadVariable(boolean stopThreadVariable) {
+            this.stopThreadVariable = stopThreadVariable;
+        }
+
         public SendReceive(Socket skt) {
             socket = skt;
             try {
-                inputStream = socket.getInputStream();
-                outputStream = socket.getOutputStream();
+                if(!stopThreadVariable) {
+                    inputStream = socket.getInputStream();
+                    outputStream = socket.getOutputStream();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -305,7 +373,7 @@ public class ConnectActivity extends AppCompatActivity {
             byte[] buffer = new byte[1024];
             int bytes;
 
-            while (socket!=null) {
+            while (socket!=null && socket.isConnected()) {
                 try {
                     bytes = inputStream.read(buffer);
                     if(bytes > 0) {
@@ -330,6 +398,12 @@ public class ConnectActivity extends AppCompatActivity {
         Socket socket;
         String hostAddress;
 
+        private boolean stopThreadVariable = false;
+
+        public void setStopThreadVariable(boolean stopThreadVariable) {
+            this.stopThreadVariable = stopThreadVariable;
+        }
+
         public ClientClass(InetAddress hostAddress) {
             this.hostAddress = hostAddress.getHostAddress();
             socket = new Socket();
@@ -338,10 +412,12 @@ public class ConnectActivity extends AppCompatActivity {
         @Override
         public void run() {
             try {
-                socket.connect(new InetSocketAddress(hostAddress, 8888), 10000);
-                sendReceive = new SendReceive(socket);
-                sendReceive.start();
-                sendOpponentName();
+                while(!stopThreadVariable && !socket.isConnected()) {
+                    socket.connect(new InetSocketAddress(hostAddress, 8888), 10000);
+                    sendReceive = new SendReceive(socket);
+                    sendReceive.start();
+                    sendOpponentName();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

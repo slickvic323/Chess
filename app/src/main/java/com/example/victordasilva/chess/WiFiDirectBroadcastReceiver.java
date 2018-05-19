@@ -56,26 +56,35 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver{
 
                 // If there is a peer to connect to
                 if(activity.deviceArray!= null && activity.deviceArray.length > 0 && !isConnected) {
-                    final WifiP2pDevice device = activity.deviceArray[0];
-                    WifiP2pConfig config = new WifiP2pConfig();
-                    config.deviceAddress = device.deviceAddress;
-                    manager.connect(channel, config, new WifiP2pManager.ActionListener() {
-                        @Override
-                        public void onSuccess() {
-                            Log.i("DEVICE", device.primaryDeviceType);
-                            Toast.makeText(activity.getApplicationContext(), "Connected to " + device.deviceName, Toast.LENGTH_SHORT).show();
-                            numFails = 0;
+                    for(WifiP2pDevice device : activity.deviceArray) {
+                        final WifiP2pDevice currentDevice = device;
+                        String deviceType = currentDevice.primaryDeviceType;
+                        // If device is a phone
+                        if(deviceType.substring(0, 2).equals("10")) {
+                            WifiP2pConfig config = new WifiP2pConfig();
+                            config.deviceAddress = currentDevice.deviceAddress;
+                            manager.connect(channel, config, new WifiP2pManager.ActionListener() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.i("DEVICE", currentDevice.primaryDeviceType);
+                                    Toast.makeText(activity.getApplicationContext(), "Connected to " + currentDevice.deviceName, Toast.LENGTH_SHORT).show();
+                                    numFails = 0;
+                                }
+                                @Override
+                                public void onFailure(int i) {
+                                    numFails++;
+                                    if(numFails >= 3) {
+                                        Toast.makeText(activity.getApplicationContext(), "Error in connecting to " + currentDevice.deviceName, Toast.LENGTH_SHORT).show();
+                                        numFails=0;
+                                    }
+                                }
+                            });
+                            break;
                         }
-                        @Override
-                        public void onFailure(int i) {
-                            numFails++;
-                            if(numFails >= 3) {
-                                Toast.makeText(activity.getApplicationContext(), "Error in connecting to " + device.deviceName, Toast.LENGTH_SHORT).show();
-                                numFails=0;
-                            }
-                        }
-                    });
-                } else if(activity.deviceArray!=null && activity.deviceArray.length ==0) {
+
+                    }
+
+                } else if(activity.deviceArray!=null && activity.deviceArray.length == 0) {
                     // Disconnected
                     Toast.makeText(activity.getApplicationContext(), "Device disconnected from network", Toast.LENGTH_SHORT).show();
                 }

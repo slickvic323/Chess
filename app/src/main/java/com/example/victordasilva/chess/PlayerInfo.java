@@ -1,10 +1,12 @@
 package com.example.victordasilva.chess;
 
+import java.io.Serializable;
+
 /**
  * Created by victordasilva on 5/14/18.
  */
 
-public class PlayerInfo {
+public class PlayerInfo implements Serializable{
     private boolean myTurn;
     //Color = "Dark" or "Light"
     private String color;
