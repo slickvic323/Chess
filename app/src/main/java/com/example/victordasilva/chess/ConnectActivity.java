@@ -69,6 +69,7 @@ public class ConnectActivity extends AppCompatActivity {
     SendReceive sendReceive;
 
     PlayerInfo playerInfo;
+    PlayerInfo opponentInfo;
 
     Intent startGameIntent;
 
@@ -173,7 +174,6 @@ public class ConnectActivity extends AppCompatActivity {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO
 
                 if(serverClass!=null) {
                     JSONObject jsonObject = new JSONObject();
@@ -206,7 +206,10 @@ public class ConnectActivity extends AppCompatActivity {
                     }
 
                     startGameIntent = new Intent(ConnectActivity.this, GamePlayActivity.class);
-                    startGameIntent.putExtra("playerInfo", playerInfo);
+                    startGameIntent.putExtra("myName", playerInfo.getName());
+                    startGameIntent.putExtra("myColor", playerInfo.getColor());
+                    startGameIntent.putExtra("opponentName", opponentInfo.getName());
+                    startGameIntent.putExtra("opponentColor", opponentInfo.getColor());
                     startActivity(startGameIntent);
                 } else {
                     Toast.makeText(getApplicationContext(), "Wait for other player to be ready", Toast.LENGTH_SHORT).show();
@@ -301,9 +304,11 @@ public class ConnectActivity extends AppCompatActivity {
                             if(opponentColor.equals("Dark")) {
                                 userImage.setImageResource(R.drawable.light_pawn);
                                 opponentImage.setImageResource(R.drawable.dark_pawn);
+                                opponentInfo = new PlayerInfo(opponentName, "Dark");
                             } else if(opponentColor.equals("Light")) {
                                 userImage.setImageResource(R.drawable.dark_pawn);
                                 opponentImage.setImageResource(R.drawable.light_pawn);
+                                opponentInfo = new PlayerInfo(opponentName, "Light");
                             }
                             playButton.setVisibility(View.VISIBLE);
                         } else if(messageType == 3) {

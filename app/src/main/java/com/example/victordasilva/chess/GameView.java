@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
@@ -84,6 +85,8 @@ public class GameView extends SurfaceView implements Runnable {
     // y and x positions (relative to board)
     private ChessPiece[][] boardLayout;
 
+    PlayerInfo myInfo;
+    PlayerInfo opponentInfo;
 
     private static int screenSizeX;
     private static int screenSizeY;
@@ -112,12 +115,11 @@ public class GameView extends SurfaceView implements Runnable {
     WifiP2pManager.Channel mChannel;
 
     //Class constructor
-    public GameView(Context context, int screenSizeX, int screenSizeY, WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
+    public GameView(Context context, int screenSizeX, int screenSizeY, WifiP2pManager mManager, WifiP2pManager.Channel mChannel, PlayerInfo myInfo, PlayerInfo opponentInfo) {
         super(context);
 
+        // Fixes the NetworkOnMainThread Exception
         enableStrictMode();
-
-
 
         this.mManager = mManager;
         this.mChannel = mChannel;
@@ -143,6 +145,8 @@ public class GameView extends SurfaceView implements Runnable {
 
 
         this.context = context;
+        this.myInfo = myInfo;
+        this.opponentInfo = opponentInfo;
         this.screenSizeX = screenSizeX;
         this.screenSizeY = screenSizeY;
         this.squareSize = screenSizeX / 8;
@@ -159,17 +163,18 @@ public class GameView extends SurfaceView implements Runnable {
         boardLayout = new ChessPiece[8][8];
         setupPieces(context);
 
-        gameInfo = new GameInfo(boardLayout, "Light", 120000);
+        if(myInfo.getColor().equals("Light")) {
+            gameInfo = new GameInfo(boardLayout, "Light", 120000);
+        } else if(myInfo.getColor().equals("Dark")) {
+            flipBoard();
+            gameInfo = new GameInfo(boardLayout, "Dark", 120000);
+        }
 
         //Initializing Drawing Objects
         surfaceHolder = getHolder();
         paint = new Paint();
 
     }
-
-//    public void setSendReceive(GamePlayActivity.SendReceive sendReceive) {
-//        this.sendReceive = sendReceive;
-//    }
 
     @Override
     public void run() {
@@ -289,6 +294,7 @@ public class GameView extends SurfaceView implements Runnable {
         gameThread.start();
     }
 
+
     private void updateTouchHandler() {
         Log.i("touchHandler", "Solid Tap - X: " + touchedX + " Y: " + touchedY);
         //player clicked on the board
@@ -326,7 +332,7 @@ public class GameView extends SurfaceView implements Runnable {
                                     madeMove = true;
                                 }
                             }
-                            sendMoveToOpponent();
+                            sendMoveToOpponent(touchedSquare[1], touchedSquare[0], tempTouchedSquare[1], tempTouchedSquare[0]);
                             break;
                         }
                     }
@@ -349,10 +355,14 @@ public class GameView extends SurfaceView implements Runnable {
         }
     }
 
-    private void sendMoveToOpponent() {
+    private void sendMoveToOpponent(int beginX, int beginY, int endX, int endY) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("message_type", 2);
-        jsonObject.put("move", "Player just sent you their move");
+        // jsonObject.put("move", "Player just sent you their move");
+        jsonObject.put("beginX", beginX);
+        jsonObject.put("beginY", beginY);
+        jsonObject.put("endX", endX);
+        jsonObject.put("endY", endY);
         String message = jsonObject.toString();
         sendReceive.write(message.getBytes());
     }
@@ -460,8 +470,33 @@ public class GameView extends SurfaceView implements Runnable {
                         if(messageType == 1) {
 
                         } else if(messageType == 2) {
-                            String note = (String) jsonObject.get("move");
-                            Log.i("Note", note);
+                            // String note = (String) jsonObject.get("move");
+                            // Log.i("Note", note);
+                            int beginX = (int) ((long) jsonObject.get("beginX"));
+                            int beginY = (int) ((long) jsonObject.get("beginY"));
+                            int endX = (int) ((long) jsonObject.get("endX"));
+                            int endY = (int) ((long) jsonObject.get("endY"));
+
+                            // Flip the movement values!
+                            beginX = 7-beginX;
+                            beginY = 7-beginY;
+                            endX = 7-endX;
+                            endY = 7-endY;
+
+                            // Piece that moved
+                            ChessPiece movingPiece = boardLayout[beginY][beginX];
+
+                            // Did not destroy another piece
+                            if(boardLayout[endY][endX]==null) {
+                                boardLayout[endY][endX] = movingPiece;
+                                movingPiece.updatePosition(endX, endY);
+                            } else {
+                                // Piece destroyed another piece
+                                ChessPiece destroyedPiece = boardLayout[endY][endX];
+                                destroyedPiece.setInPlay(false);
+                                boardLayout[endY][endX] = movingPiece;
+                                movingPiece.updatePosition(endX, endY);
+                            }
                         }
 
                     } catch (ParseException e) {
@@ -686,10 +721,11 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     public void flipBoard() {
-        for(int i=0;i<8;i++) {
-            for(int j=0;j<8;j++) {
-                
-            }
+        for(ChessPiece piece : chessPieces) {
+            int newX = 7-piece.getxSquare();
+            int newY = 7-piece.getySquare();
+            piece.updatePosition(newX, newY);
+            boardLayout[newY][newX] = piece;
         }
     }
 

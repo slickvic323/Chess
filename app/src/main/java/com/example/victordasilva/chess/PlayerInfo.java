@@ -18,6 +18,8 @@ public class PlayerInfo implements Serializable{
         this.color = color;
     }
 
+
+
     public boolean isMyTurn() {
         return myTurn;
     }

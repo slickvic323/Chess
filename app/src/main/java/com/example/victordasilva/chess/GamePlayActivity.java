@@ -32,7 +32,8 @@ import static com.example.victordasilva.chess.ConnectActivity.MESSAGE_READ;
 public class GamePlayActivity extends AppCompatActivity {
 
     private GameView gameView;
-    private PlayerInfo playerInfo;
+    private PlayerInfo myInfo;
+    private PlayerInfo opponentInfo;
 
     IntentFilter mIntentFilter;
     WifiP2pManager.Channel mChannel;
@@ -46,6 +47,10 @@ public class GamePlayActivity extends AppCompatActivity {
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
 
+        // Getting Player Info from previoius Activity
+        myInfo = new PlayerInfo(getIntent().getStringExtra("myName"), getIntent().getStringExtra("myColor"));
+        opponentInfo = new PlayerInfo(getIntent().getStringExtra("opponentName"), getIntent().getStringExtra("opponentColor"));
+
         //Getting Display Object
         Display display = getWindowManager().getDefaultDisplay();
 
@@ -54,13 +59,10 @@ public class GamePlayActivity extends AppCompatActivity {
         display.getSize(size);
 
         //Initializing game view object
-        gameView = new GameView(this, size.x, size.y, mManager, mChannel);
+        gameView = new GameView(this, size.x, size.y, mManager, mChannel, myInfo, opponentInfo);
 
         //Adding it to contentView
         setContentView(gameView);
-
-        playerInfo = (PlayerInfo) getIntent().getSerializableExtra("playerInfo");
-
 
     }
 
