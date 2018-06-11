@@ -9,6 +9,7 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -113,6 +114,11 @@ public class GameView extends SurfaceView implements Runnable {
     //Class constructor
     public GameView(Context context, int screenSizeX, int screenSizeY, WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
         super(context);
+
+        enableStrictMode();
+
+
+
         this.mManager = mManager;
         this.mChannel = mChannel;
         mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
@@ -668,121 +674,34 @@ public class GameView extends SurfaceView implements Runnable {
         return topBoard;
     }
 
-    public void drawDarkPawns() {
-        //Dark pawn 1
-        canvas.drawBitmap(
-                darkPawn1.getBitmap(),
-                darkPawn1.getX(),
-                darkPawn1.getY(),
-                paint
-        );
-        //Dark pawn 2
-        canvas.drawBitmap(
-                darkPawn2.getBitmap(),
-                darkPawn2.getX(),
-                darkPawn2.getY(),
-                paint
-        );
-        //Dark pawn 3
-        canvas.drawBitmap(
-                darkPawn3.getBitmap(),
-                darkPawn3.getX(),
-                darkPawn3.getY(),
-                paint
-        );
-        //Dark pawn 4
-        canvas.drawBitmap(
-                darkPawn4.getBitmap(),
-                darkPawn4.getX(),
-                darkPawn4.getY(),
-                paint
-        );
-        //Dark pawn 5
-        canvas.drawBitmap(
-                darkPawn5.getBitmap(),
-                darkPawn5.getX(),
-                darkPawn5.getY(),
-                paint
-        );
-        //Dark pawn 6
-        canvas.drawBitmap(
-                darkPawn6.getBitmap(),
-                darkPawn6.getX(),
-                darkPawn6.getY(),
-                paint
-        );
-        //Dark pawn 7
-        canvas.drawBitmap(
-                darkPawn7.getBitmap(),
-                darkPawn7.getX(),
-                darkPawn7.getY(),
-                paint
-        );
-        //Dark pawn 8
-        canvas.drawBitmap(
-                darkPawn8.getBitmap(),
-                darkPawn8.getX(),
-                darkPawn8.getY(),
-                paint
-        );
+    // General Information
+    // Message Type: 3
+    public void sendGeneralInfo() {
+        // TODO
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("message_type", 3);
+
+        String message = jsonObject.toString();
+        sendReceive.write(message.getBytes());
     }
 
-    public void drawLightPawns() {
-        //Light pawn 1
-        canvas.drawBitmap(
-                lightPawn1.getBitmap(),
-                lightPawn1.getX(),
-                lightPawn1.getY(),
-                paint
-        );
-        //Light pawn 2
-        canvas.drawBitmap(
-                lightPawn2.getBitmap(),
-                lightPawn2.getX(),
-                lightPawn2.getY(),
-                paint
-        );
-        //Light pawn 3
-        canvas.drawBitmap(
-                lightPawn3.getBitmap(),
-                lightPawn3.getX(),
-                lightPawn3.getY(),
-                paint
-        );
-        //Light pawn 4
-        canvas.drawBitmap(
-                lightPawn4.getBitmap(),
-                lightPawn4.getX(),
-                lightPawn4.getY(),
-                paint
-        );
-        //Light pawn 5
-        canvas.drawBitmap(
-                lightPawn5.getBitmap(),
-                lightPawn5.getX(),
-                lightPawn5.getY(),
-                paint
-        );
-        //Light pawn 6
-        canvas.drawBitmap(
-                lightPawn6.getBitmap(),
-                lightPawn6.getX(),
-                lightPawn6.getY(),
-                paint
-        );
-        //Light pawn 7
-        canvas.drawBitmap(
-                lightPawn7.getBitmap(),
-                lightPawn7.getX(),
-                lightPawn7.getY(),
-                paint
-        );
-        //Light pawn 8
-        canvas.drawBitmap(
-                lightPawn8.getBitmap(),
-                lightPawn8.getX(),
-                lightPawn8.getY(),
-                paint
-        );
+    public void flipBoard() {
+        for(int i=0;i<8;i++) {
+            for(int j=0;j<8;j++) {
+                
+            }
+        }
     }
+
+
+
+
+
+    public void enableStrictMode()
+    {
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+
+        StrictMode.setThreadPolicy(policy);
+    }
+
 }
