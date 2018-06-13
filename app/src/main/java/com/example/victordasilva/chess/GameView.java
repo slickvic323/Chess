@@ -2,9 +2,11 @@ package com.example.victordasilva.chess;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
@@ -47,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static android.R.attr.screenSize;
 import static com.example.victordasilva.chess.ConnectActivity.MESSAGE_READ;
 
 /**
@@ -58,6 +61,8 @@ public class GameView extends SurfaceView implements Runnable {
     volatile boolean playing;
 
     private Context context;
+
+    private boolean connectionEstablished;
 
     //the game thread
     private Thread gameThread = null;
@@ -180,28 +185,41 @@ public class GameView extends SurfaceView implements Runnable {
 
         myTimer = new Timer();
         if(myInfo.getColor().equals("Light")) {
-            gameInfo = new GameInfo(boardLayout, "Light", 120000);
+            gameInfo = new GameInfo(boardLayout, "Light", 121000);
         } else if(myInfo.getColor().equals("Dark")) {
             flipBoard();
-            gameInfo = new GameInfo(boardLayout, "Dark", 120000);
+            gameInfo = new GameInfo(boardLayout, "Dark", 121000);
         }
 
-        if(gameInfo.getWhoseTurn().equals(myInfo.getColor())) {
-            gameInfo.setTimeRemaining(gameInfo.getTimeForTurns());
-            myTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    gameInfo.setTimeRemaining(gameInfo.getTimeRemaining()-1000);
-                    timerString = getTimerString(gameInfo.getTimeRemaining());
-                }
-            },
-            0, 1000);
-        }
+        connectionEstablished = false;
 
         //Initializing Drawing Objects
         surfaceHolder = getHolder();
         paint = new Paint();
 
+    }
+
+    private void startTimer() {
+        if(gameInfo.getWhoseTurn().equals(myInfo.getColor())) {
+            myTimer = new Timer();
+            gameInfo.setTimeRemaining(gameInfo.getTimeForTurns());
+            myTimer.schedule(new TimerTask() {
+                                 @Override
+                                 public void run() {
+                                     gameInfo.setTimeRemaining(gameInfo.getTimeRemaining()-1000);
+                                     timerString = getTimerString(gameInfo.getTimeRemaining());
+                                 }
+                             },
+                    1000, 1000);
+            sendTimer();
+        }
+    }
+
+    private void sendTimer() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("message_type", 4);
+        String message = jsonObject.toString();
+        sendReceive.write(message.getBytes());
     }
 
     private String getTimerString(long ms) {
@@ -252,7 +270,12 @@ public class GameView extends SurfaceView implements Runnable {
 
 
     private void update() {
-
+        if(!connectionEstablished) {
+            if(sendReceive!=null) {
+                startTimer();
+                connectionEstablished = true;
+            }
+        }
     }
 
     private void draw() {
@@ -280,14 +303,31 @@ public class GameView extends SurfaceView implements Runnable {
 
             // Drawing the timer time
             Paint timerTextPaint = new Paint();
-            timerTextPaint.setColor(Color.BLACK);
+            timerTextPaint.setColor(Color.RED);
             timerTextPaint.setStyle(Paint.Style.FILL);
-            timerTextPaint.setTextSize(clockPic.getHeight());
-            canvas.drawText(
-                    timerString,
-                    screenSizeX/4,
-                    clockPic.getHeight(),
-                    timerTextPaint);
+            timerTextPaint.setTextSize(5*clockPic.getHeight()/6);
+            Typeface tf = Typeface.createFromAsset(getResources().getAssets(), "fonts/simply_square.ttf");
+            timerTextPaint.setTypeface(tf);
+            if(timerString.length()>0) {
+                canvas.drawText(
+                        timerString.substring(0, 1),
+                        screenSizeX/4 + clockPic.getWidth()/14,
+                        clockPic.getHeight() - clockPic.getHeight()/8,
+                        timerTextPaint
+                );
+                canvas.drawText(
+                        timerString.substring(2, 3),
+                        screenSizeX/4 + (47*clockPic.getWidth()/100),
+                        clockPic.getHeight() - clockPic.getHeight()/8,
+                        timerTextPaint
+                );
+                canvas.drawText(
+                        timerString.substring(3, 4),
+                        screenSizeX/4 + (3*clockPic.getWidth()/4),
+                        clockPic.getHeight() - clockPic.getHeight()/8,
+                        timerTextPaint
+                );
+            }
 
             //Drawing the game board
             canvas.drawBitmap(
@@ -296,6 +336,7 @@ public class GameView extends SurfaceView implements Runnable {
                     gameBoard.getY(),
                     paint
             );
+
 
             if(touchedSquare != null){
                 GreenHighlightImage ghi = new GreenHighlightImage(context, leftBoard, topBoard, squareSize, touchedSquare);
@@ -401,6 +442,9 @@ public class GameView extends SurfaceView implements Runnable {
                                 }
                             }
                             sendMoveToOpponent(touchedSquare[1], touchedSquare[0], tempTouchedSquare[1], tempTouchedSquare[0]);
+                            myTimer.cancel();
+                            myTimer.purge();
+                            myTimer = null;
                             break;
                         }
                     }
@@ -468,6 +512,7 @@ public class GameView extends SurfaceView implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
         }
 
         @Override
@@ -575,6 +620,21 @@ public class GameView extends SurfaceView implements Runnable {
                                 // Change the turn to the Dark user
                                 gameInfo.setWhoseTurn("Dark");
                             }
+                            myTimer.cancel();
+                            myTimer.purge();
+                            myTimer = null;
+                            startTimer();
+                        } else if(messageType == 4) {
+                            myTimer = new Timer();
+                            gameInfo.setTimeRemaining(gameInfo.getTimeForTurns());
+                            myTimer.schedule(new TimerTask() {
+                                                 @Override
+                                                 public void run() {
+                                                     gameInfo.setTimeRemaining(gameInfo.getTimeRemaining()-1000);
+                                                     timerString = getTimerString(gameInfo.getTimeRemaining());
+                                                 }
+                                             },
+                                    1000, 1000);
                         }
 
                     } catch (ParseException e) {
