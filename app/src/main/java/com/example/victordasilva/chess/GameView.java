@@ -329,6 +329,22 @@ public class GameView extends SurfaceView implements Runnable {
                 );
             }
 
+            // Draw the Turn Signifier
+            Paint turnPaint = new Paint();
+            turnPaint.setColor(Color.BLACK);
+            turnPaint.setStyle(Paint.Style.FILL);
+            turnPaint.setTextSize(screenSizeY/18);
+            Typeface turnTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/josefinsans-regular.ttf");
+            turnPaint.setTypeface(turnTF);
+            turnPaint.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText(
+                    gameInfo.getWhoseTurnText(),
+                    screenSizeX/2,
+                    screenSizeY/8+screenSizeY/18,
+                    turnPaint
+            );
+
+
             //Drawing the game board
             canvas.drawBitmap(
                     gameBoard.getBitmap(),

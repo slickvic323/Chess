@@ -879,6 +879,18 @@ public class GameInfo {
         return chosenTile;
     }
 
+    public String getWhoseTurnText() {
+        if(getWhoseTurn()==null || getUserColor() == null) {
+            return "";
+        }
+
+        if(getWhoseTurn().equals(getUserColor())) {
+            return "Your Turn";
+        } else {
+            return "Opponent's Turn";
+        }
+    }
+
     //Setters
     public void setInProgress(boolean inProgress) {
         this.inProgress = inProgress;
