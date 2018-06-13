@@ -16,7 +16,6 @@ public class GameInfo {
     private String userColor;
     private String whoseTurn;
     private long timeRemaining;
-    private long startTimeOfNewTurn;
     private int[] chosenTile; //0=y 1=x
 
 
@@ -873,13 +872,7 @@ public class GameInfo {
     }
 
     public long getTimeRemaining() {
-        //TODO
-        //timeRemaining =
         return timeRemaining;
-    }
-
-    public long getStartTimeOfNewTurn() {
-        return startTimeOfNewTurn;
     }
 
     public int[] getChosenTile() {
@@ -899,12 +892,12 @@ public class GameInfo {
         this.userColor = userColor;
     }
 
-    public void setWhoseTurn(String whoseTurn) {
-        this.whoseTurn = whoseTurn;
+    public void setTimeRemaining(long timeRemaining) {
+        this.timeRemaining = timeRemaining;
     }
 
-    public void setStartTimeOfNewTurn(long startTimeOfNewTurn) {
-        this.startTimeOfNewTurn = startTimeOfNewTurn;
+    public void setWhoseTurn(String whoseTurn) {
+        this.whoseTurn = whoseTurn;
     }
 
     public void setChosenTile(int[] chosenTile) {

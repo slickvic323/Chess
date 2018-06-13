@@ -44,6 +44,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.example.victordasilva.chess.ConnectActivity.MESSAGE_READ;
 
@@ -60,6 +62,8 @@ public class GameView extends SurfaceView implements Runnable {
     //the game thread
     private Thread gameThread = null;
 
+    //Adding the GameBackground
+    private GameBackground gameBackground;
     //Adding the GameBoard
     private GameBoard gameBoard;
     //Adding all pieces
@@ -76,6 +80,9 @@ public class GameView extends SurfaceView implements Runnable {
     private LightPawn lightPawn1, lightPawn2, lightPawn3, lightPawn4, lightPawn5, lightPawn6, lightPawn7, lightPawn8;
     private LightQueen lightQueen;
     private LightRook lightRook1, lightRook2;
+
+    // Adding GameClock Picture
+    private Clock clockPic;
 
     private ArrayList<ChessPiece> chessPieces;
 
@@ -94,6 +101,9 @@ public class GameView extends SurfaceView implements Runnable {
     private static int squareSize;
     private static int leftBoard;
     private static int topBoard;
+
+    private static Timer myTimer;
+    private String timerString = "";
 
     private float touchedX;
     private float touchedY;
@@ -152,8 +162,13 @@ public class GameView extends SurfaceView implements Runnable {
         this.squareSize = screenSizeX / 8;
         chessPieces = new ArrayList<ChessPiece>();
         movementTouchDetected = false;
+
+        //Initializing the GameBackground object
+        gameBackground = new GameBackground(context, screenSizeX, screenSizeY);
         //Initializing gameBoard object
         gameBoard = new GameBoard(context, screenSizeX, screenSizeY);
+        //Initializing Clock Picture object
+        clockPic = new Clock(context, screenSizeX, screenSizeY);
         leftBoard = gameBoard.getX();
         topBoard = gameBoard.getY();
         boardSize = gameBoard.getBoardSize();
@@ -163,6 +178,7 @@ public class GameView extends SurfaceView implements Runnable {
         boardLayout = new ChessPiece[8][8];
         setupPieces(context);
 
+        myTimer = new Timer();
         if(myInfo.getColor().equals("Light")) {
             gameInfo = new GameInfo(boardLayout, "Light", 120000);
         } else if(myInfo.getColor().equals("Dark")) {
@@ -170,10 +186,35 @@ public class GameView extends SurfaceView implements Runnable {
             gameInfo = new GameInfo(boardLayout, "Dark", 120000);
         }
 
+        if(gameInfo.getWhoseTurn().equals(myInfo.getColor())) {
+            gameInfo.setTimeRemaining(gameInfo.getTimeForTurns());
+            myTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    gameInfo.setTimeRemaining(gameInfo.getTimeRemaining()-1000);
+                    timerString = getTimerString(gameInfo.getTimeRemaining());
+                }
+            },
+            0, 1000);
+        }
+
         //Initializing Drawing Objects
         surfaceHolder = getHolder();
         paint = new Paint();
 
+    }
+
+    private String getTimerString(long ms) {
+        String time = "";
+        int totalSeconds = (int) ms/1000;
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        if(seconds < 10) {
+            time = minutes + ":0" + seconds;
+        } else {
+            time = minutes + ":" + seconds;
+        }
+        return time;
     }
 
     @Override
@@ -221,6 +262,33 @@ public class GameView extends SurfaceView implements Runnable {
             canvas = surfaceHolder.lockCanvas();
             //Drawing a background color for the canvas
             canvas.drawColor(Color.BLACK);
+            //Drawing the Background Image
+            canvas.drawBitmap(
+                    gameBackground.getBitmap(),
+                    gameBackground.getX(),
+                    gameBackground.getY(),
+                    paint
+            );
+
+            // Drawing the Clock Pic
+            canvas.drawBitmap(
+                    clockPic.getBitmap(),
+                    clockPic.getX(),
+                    clockPic.getY(),
+                    paint
+            );
+
+            // Drawing the timer time
+            Paint timerTextPaint = new Paint();
+            timerTextPaint.setColor(Color.BLACK);
+            timerTextPaint.setStyle(Paint.Style.FILL);
+            timerTextPaint.setTextSize(clockPic.getHeight());
+            canvas.drawText(
+                    timerString,
+                    screenSizeX/4,
+                    clockPic.getHeight(),
+                    timerTextPaint);
+
             //Drawing the game board
             canvas.drawBitmap(
                     gameBoard.getBitmap(),
@@ -363,6 +431,7 @@ public class GameView extends SurfaceView implements Runnable {
         jsonObject.put("beginY", beginY);
         jsonObject.put("endX", endX);
         jsonObject.put("endY", endY);
+        jsonObject.put("colorMoved", myInfo.getColor());
         String message = jsonObject.toString();
         sendReceive.write(message.getBytes());
     }
@@ -496,6 +565,15 @@ public class GameView extends SurfaceView implements Runnable {
                                 destroyedPiece.setInPlay(false);
                                 boardLayout[endY][endX] = movingPiece;
                                 movingPiece.updatePosition(endX, endY);
+                            }
+
+                            String colorMoved = (String) jsonObject.get("colorMoved");
+                            if(colorMoved.equals("Dark")) {
+                                // Change the turn to Light user
+                                gameInfo.setWhoseTurn("Light");
+                            } else if(colorMoved.equals("Light")) {
+                                // Change the turn to the Dark user
+                                gameInfo.setWhoseTurn("Dark");
                             }
                         }
 
