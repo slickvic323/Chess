@@ -548,7 +548,7 @@ public class GameInfo {
                 possibleMoves.add(newMove);
             }
         }
-        if((boardLayout[y][x].hasMadeFirstMove() == false)) {
+        if((boardLayout[y][x].hasMadeFirstMove() == false && y>1 && boardLayout[y-1][x]==null)) {
             // Tile 2 above
             if(y>1 && boardLayout[y-2][x] == null) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
@@ -811,17 +811,17 @@ public class GameInfo {
         }
         // Check above
         for(int i=y-1;i>=0;i--) {
-            ChessPiece currentPiece = boardLayout[y][i];
+            ChessPiece currentPiece = boardLayout[i][x];
             //Empty space
             if(currentPiece == null){
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
-                newMove.add(y);
                 newMove.add(i);
+                newMove.add(x);
                 possibleMoves.add(newMove);
             } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece())) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
-                newMove.add(y);
                 newMove.add(i);
+                newMove.add(x);
                 possibleMoves.add(newMove);
                 break;
             } else {
@@ -830,17 +830,17 @@ public class GameInfo {
         }
         // Check below
         for(int i=y+1;i<8;i++) {
-            ChessPiece currentPiece = boardLayout[y][i];
+            ChessPiece currentPiece = boardLayout[i][x];
             //Empty space
             if(currentPiece == null){
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
-                newMove.add(y);
                 newMove.add(i);
+                newMove.add(x);
                 possibleMoves.add(newMove);
             } else if(areOppositeColors(userIsDark, currentPiece.isDarkPiece())) {
                 ArrayList<Integer> newMove = new ArrayList<Integer>();
-                newMove.add(y);
                 newMove.add(i);
+                newMove.add(x);
                 possibleMoves.add(newMove);
                 break;
             } else {
