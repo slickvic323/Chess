@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
@@ -427,6 +428,7 @@ public class GameView extends SurfaceView implements Runnable {
             int xVal = Math.round(touchedX);
             int yVal = Math.round(touchedY);
             boolean madeMove = false;
+
             if(gameInfo.getWhoseTurn().equals(gameInfo.getUserColor())) {
                 if(possibleMoves != null) {
                     // Check if the player's touch was to make one of the possible moves
@@ -475,9 +477,15 @@ public class GameView extends SurfaceView implements Runnable {
                     gameInfo.setWhoseTurn("Dark");
                 }
                 touchedSquare = null;
+                // Play the click_sound_2.mp3 sound for a click that resulted in a made move
+                MediaPlayer mp = MediaPlayer.create(context, R.raw.click_sound_2);
+                mp.start();
             } else {
                 touchedSquare = checkSquareTouch(xVal, yVal);
                 Log.i("touchedSquare", "Touched Square - Vertical: " + touchedSquare[0] + " Horizontal: " + touchedSquare[1]);
+                // Play the click_sound.mp3 sound for a click that did NOT result in a made move
+                MediaPlayer mp = MediaPlayer.create(context, R.raw.click_sound);
+                mp.start();
             }
             possibleMoves = gameInfo.getPossibleMoves(touchedSquare);
         }
