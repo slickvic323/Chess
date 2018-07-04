@@ -105,4 +105,12 @@ public class DarkBishop implements ChessPiece{
     public void setMadeFirstMove(boolean madeFirstMove) {
         this.madeFirstMove = madeFirstMove;
     }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
 }
