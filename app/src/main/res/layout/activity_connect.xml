@@ -4,17 +4,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@drawable/wooden_background">
 
-
-    <TextView
-        android:id="@+id/connect_title"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fontFamily="sans-serif"
-        android:text="Connect"
-        android:textAlignment="center"
-        android:textSize="30sp" />
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:text="←"
+            android:textStyle="bold"
+            android:textSize="40sp"
+            android:background="@android:color/transparent"/>
+
+        <TextView
+            android:id="@+id/connect_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:fontFamily="sans-serif"
+            android:text="Connect"
+            android:textAlignment="center"
+            android:textSize="50sp" />
+
+    </RelativeLayout>
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
@@ -83,14 +100,14 @@
                 android:layout_height="60dp"
                 android:layout_weight="1"
                 android:layout_column="1"
-                app:srcCompat="@drawable/red_x" />
+                app:srcCompat="@drawable/question_mark" />
             <ImageView
                 android:id="@+id/opponent_image"
                 android:layout_width="0dp"
                 android:layout_height="60dp"
                 android:layout_weight="1"
                 android:layout_column="2"
-                app:srcCompat="@drawable/red_x" />
+                app:srcCompat="@drawable/question_mark" />
         </TableRow>
 
         <TableRow>
