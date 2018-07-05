@@ -17,10 +17,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,7 +53,8 @@ public class ConnectActivity extends AppCompatActivity {
     WifiP2pManager mManager;
     BroadcastReceiver mReceiver;
 
-    Button searchButton, playButton, enterNameButton;
+    ProgressBar progressBar;
+    Button searchButton, playButton, enterNameButton, backButton;
     EditText nameTextBox;
     TableLayout userInfoLayout;
     ImageView userImage, opponentImage;
@@ -72,6 +75,10 @@ public class ConnectActivity extends AppCompatActivity {
     PlayerInfo opponentInfo;
 
     Intent startGameIntent;
+
+    private Handler timerHandler;
+    private int delay;
+    private boolean searching;
 
     private boolean gameServerReady = false;
 
@@ -132,6 +139,31 @@ public class ConnectActivity extends AppCompatActivity {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
+        searching = false;
+        timerHandler = new Handler();
+        delay = 3000; // milliseconds
+
+        handler.postDelayed(new Runnable(){
+            public void run(){
+                //do something
+                if(searching) {
+                    mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+                        @Override
+                        public void onSuccess() {
+                            Log.i("Discover Peers", "Reattempting to discover");
+                        }
+
+                        @Override
+                        public void onFailure(int i) {
+                            Log.i("Discover Peers", "Reattempting to discover failed: " + i);
+                        }
+                    });
+                    handler.postDelayed(this, delay);
+                }
+            }
+        }, delay);
+
+
         setupUIPieces();
         setListeners();
 
@@ -139,12 +171,17 @@ public class ConnectActivity extends AppCompatActivity {
     }
 
     private void setupUIPieces() {
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.GONE);
+
         searchButton = (Button) findViewById(R.id.search_button);
         searchButton.setVisibility(View.GONE);
 
         playButton = (Button) findViewById(R.id.play_button);
         playButton.setVisibility(View.GONE);
         enterNameButton = (Button) findViewById(R.id.set_name_button);
+
+        backButton = (Button) findViewById(R.id.back_button);
 
         userImage = (ImageView) findViewById(R.id.user_image);
         opponentImage = (ImageView) findViewById(R.id.opponent_image);
@@ -167,6 +204,13 @@ public class ConnectActivity extends AppCompatActivity {
                     userNameText.setText(tempName);
                     userInfoLayout.setVisibility(View.VISIBLE);
                     searchButton.setVisibility(View.VISIBLE);
+
+                    // Hide the Keyboard
+                    InputMethodManager inputManager = (InputMethodManager)
+                            getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                    inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                            InputMethodManager.HIDE_NOT_ALWAYS);
                 }
             }
         });
@@ -212,8 +256,18 @@ public class ConnectActivity extends AppCompatActivity {
                     startGameIntent.putExtra("opponentColor", opponentInfo.getColor());
                     startActivity(startGameIntent);
                 } else {
-                    Toast.makeText(getApplicationContext(), "Wait for other player to be ready", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),
+                            "Wait for other player to be ready", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent startTitleActivity = new Intent(ConnectActivity.this, TitleActivity.class);
+                startActivity(startTitleActivity);
+                finish();
             }
         });
     }
@@ -228,6 +282,7 @@ public class ConnectActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
+        searching = false;
 
         if(startGameIntent == null) {
             unregisterReceiver(mReceiver);
@@ -262,11 +317,12 @@ public class ConnectActivity extends AppCompatActivity {
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                searching = true;
                 mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
                         Log.i("Discover Peers", "Discovery Started");
-                        Toast.makeText(getApplicationContext(), "Discovery Started", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Searching for Opponent", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -275,6 +331,11 @@ public class ConnectActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), "Discovery Failed to Start: " + i, Toast.LENGTH_SHORT).show();
                     }
                 });
+
+                // Show the progress bar
+                if(progressBar.getVisibility()!=View.VISIBLE) {
+                    progressBar.setVisibility(View.VISIBLE);
+                }
             }
 
         });
@@ -283,7 +344,6 @@ public class ConnectActivity extends AppCompatActivity {
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            //TODO
             switch (msg.what) {
                 case MESSAGE_READ:
                     byte[] readBuff = (byte[]) msg.obj;
@@ -295,6 +355,7 @@ public class ConnectActivity extends AppCompatActivity {
                         long messageType = (long) jsonObject.get("message_type");
                         Log.i("Message type", String.valueOf(messageType));
                         if(messageType == 1) {
+                            searching = false;
                             // Setting opponent's name
                             String opponentName = (String) jsonObject.get("name");
                             opponentNameText.setText(opponentName);
@@ -311,6 +372,9 @@ public class ConnectActivity extends AppCompatActivity {
                                 opponentInfo = new PlayerInfo(opponentName, "Light");
                             }
                             playButton.setVisibility(View.VISIBLE);
+                            searchButton.setVisibility(View.INVISIBLE);
+                            // Set the progress Bar Visibility to Gone
+                            progressBar.setVisibility(View.GONE);
                         } else if(messageType == 3) {
                             gameServerReady = (boolean) jsonObject.get("server_ready");
                         }
