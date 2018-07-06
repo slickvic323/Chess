@@ -434,6 +434,21 @@ public class GameView extends SurfaceView implements Runnable {
                 }
             }
 
+            // Drawing the names of the players
+            Paint namePaint = new Paint();
+            namePaint.setColor(Color.rgb(0, 102, 102));
+            namePaint.setStyle(Paint.Style.FILL);
+            namePaint.setTextSize(screenSizeY/18);
+            Typeface nameTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/josefinsans_bold");
+            namePaint.setTypeface(nameTF);
+            namePaint.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText(
+                    myInfo.getName() + " VS " + opponentInfo.getName(),
+                    canvas.getWidth()/2,
+                    gameBoard.getY() + screenSizeX + screenSizeY/18 + 5,
+                    namePaint
+            );
+
             //Unlocking the canvas
             surfaceHolder.unlockCanvasAndPost(canvas);
         }
@@ -491,6 +506,9 @@ public class GameView extends SurfaceView implements Runnable {
                                 boardLayout[tempTouchedSquare[0]][tempTouchedSquare[1]] = movingPiece;
                                 boardLayout[touchedSquare[0]][touchedSquare[1]] = null;
                                 movingPiece.updatePosition(tempTouchedSquare[1], tempTouchedSquare[0]);
+                                if(!movingPiece.hasMadeFirstMove()) {
+                                    movingPiece.setMadeFirstMove(true);
+                                }
                                 madeMove = true;
                             } else {
                                 // Check that the piece is of the opposite color
@@ -502,6 +520,9 @@ public class GameView extends SurfaceView implements Runnable {
                                     movingPiece.updatePosition(tempTouchedSquare[1], tempTouchedSquare[0]);
                                     // Enemy Piece is taken down
                                     enemyPiece.setInPlay(false);
+                                    if(!movingPiece.hasMadeFirstMove()) {
+                                        movingPiece.setMadeFirstMove(true);
+                                    }
                                     madeMove = true;
                                 }
                             }
@@ -533,6 +554,7 @@ public class GameView extends SurfaceView implements Runnable {
                 MediaPlayer mp = MediaPlayer.create(context, R.raw.click_sound);
                 mp.start();
             }
+            gameInfo.setBoardLayout(boardLayout);
             possibleMoves = gameInfo.getPossibleMoves(touchedSquare);
         }
     }
