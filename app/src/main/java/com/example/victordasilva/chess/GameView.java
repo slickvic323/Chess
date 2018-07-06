@@ -34,6 +34,7 @@ import com.example.victordasilva.chess.chess_pieces.LightPawn;
 import com.example.victordasilva.chess.chess_pieces.LightQueen;
 import com.example.victordasilva.chess.chess_pieces.LightRook;
 import com.example.victordasilva.chess.chess_pieces.PurpleHighlightImage;
+import com.example.victordasilva.chess.chess_pieces.SettingsIcon;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -90,6 +91,9 @@ public class GameView extends SurfaceView implements Runnable {
     // Adding GameClock Picture
     private Clock clockPic;
 
+    // Adding the Settings button
+    private SettingsIcon settingsIcon;
+
     private ArrayList<ChessPiece> chessPieces;
 
     // y and x positions (pixels)
@@ -116,6 +120,8 @@ public class GameView extends SurfaceView implements Runnable {
     private int[] touchedSquare; //height, width
     private ArrayList<ArrayList<Integer>> possibleMoves;
     private boolean movementTouchDetected;
+
+    private float clickStartX, clickStartY, clickEndX, clickEndY;
 
     private GameInfo gameInfo;
 
@@ -169,6 +175,11 @@ public class GameView extends SurfaceView implements Runnable {
         chessPieces = new ArrayList<ChessPiece>();
         movementTouchDetected = false;
 
+        clickStartX = -1.0f;
+        clickStartY = -1.0f;
+        clickEndX = -1.0f;
+        clickEndY = -1.0f;
+
         //Initializing the GameBackground object
         gameBackground = new GameBackground(context, screenSizeX, screenSizeY);
         //Initializing gameBoard object
@@ -178,6 +189,9 @@ public class GameView extends SurfaceView implements Runnable {
         leftBoard = gameBoard.getX();
         topBoard = gameBoard.getY();
         boardSize = gameBoard.getBoardSize();
+
+        // Initializing the settings icon
+        settingsIcon = new SettingsIcon(context);
 
         createLayout();
 
@@ -252,6 +266,11 @@ public class GameView extends SurfaceView implements Runnable {
         switch(action) {
             case MotionEvent.ACTION_DOWN:
                 movementTouchDetected = false;
+                // Set the click down spot if this is the beginning of the click
+                if(clickStartX == -1.0f && clickStartY == -1.0f) {
+                    clickStartX = motionEvent.getX();
+                    clickStartY = motionEvent.getY();
+                }
                 break;
             case MotionEvent.ACTION_UP:
                 if(!movementTouchDetected){
@@ -259,6 +278,26 @@ public class GameView extends SurfaceView implements Runnable {
                     touchedY = motionEvent.getY();
                     updateTouchHandler();
                 }
+                clickEndX = motionEvent.getX();
+                clickEndY = motionEvent.getY();
+                // Check if the click started in the settings icon
+                if(clickStartX >= 20 && clickStartX <= 170 && clickStartY >= 40 && clickStartY <= 190) {
+                    // Check if the click ended in the settings icon
+                    if(clickEndX >= 20 && clickEndX <= 170 && clickEndY >= 40 && clickEndY <= 190) {
+                        // They clicked the settings button
+                        Log.i("Settings", "Settings Button Clicked");
+                        // Play the click_sound.mp3 sound for settings button clicked
+                        MediaPlayer mp = MediaPlayer.create(context, R.raw.click_sound);
+                        mp.start();
+                    }
+                }
+                // Clear the variables
+                clickStartX = -1.0f;
+                clickStartY = -1.0f;
+                clickEndX = -1.0f;
+                clickEndY = -1.0f;
+
+
                 break;
             case MotionEvent.ACTION_MOVE:
                 //movementTouchDetected = true;
@@ -345,6 +384,13 @@ public class GameView extends SurfaceView implements Runnable {
                     turnPaint
             );
 
+            // Draw the Settings Icon
+            canvas.drawBitmap(
+                    settingsIcon.getBitmap(),
+                    settingsIcon.getX(),
+                    settingsIcon.getY(),
+                    paint
+            );
 
             //Drawing the game board
             canvas.drawBitmap(
