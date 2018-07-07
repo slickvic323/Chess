@@ -439,7 +439,7 @@ public class GameView extends SurfaceView implements Runnable {
             namePaint.setColor(Color.rgb(0, 102, 102));
             namePaint.setStyle(Paint.Style.FILL);
             namePaint.setTextSize(screenSizeY/18);
-            Typeface nameTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/josefinsans_bold");
+            Typeface nameTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/josefinsans_bold.ttf");
             namePaint.setTypeface(nameTF);
             namePaint.setTextAlign(Paint.Align.CENTER);
             canvas.drawText(
