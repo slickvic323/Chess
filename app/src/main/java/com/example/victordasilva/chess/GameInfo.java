@@ -17,6 +17,9 @@ public class GameInfo {
     private String whoseTurn;
     private long timeRemaining;
     private int[] chosenTile; //0=y 1=x
+    public boolean checkOnOpponent;
+    private int numFaults;
+    private String winner;
 
 
     public GameInfo(ChessPiece[][] boardLayout, String userColor, long timeForTurns) {
@@ -25,6 +28,9 @@ public class GameInfo {
         this.userColor = userColor;
         this.timeForTurns = timeForTurns;
         whoseTurn = "Light";
+        checkOnOpponent = false;
+        numFaults = 0;
+        winner = null;
     }
 
     // Returns an array list of all of the possible tiles that the user can move to
@@ -945,6 +951,53 @@ public class GameInfo {
             return true;
         }
         return false;
+    }
+
+
+    public void checkForCheck() {
+        boolean userColor;
+        if(getUserColor().equals("Dark")) {
+            userColor = true;
+        } else {
+            userColor = false;
+        }
+        // Iterate through all of the pieces that are in play
+        for(int i=0;i<boardLayout.length;i++) {
+            for(int j=0;j<boardLayout[0].length;j++) {
+                if(boardLayout[i][j].isInPlay() && !areOppositeColors(userColor, boardLayout[i][j].isDarkPiece())) {
+                    // Check all possible moves for this piece
+                    int[] currentChosen = new int[2];
+                    currentChosen[0] = j;
+                    currentChosen[1] = i;
+                    ArrayList<ArrayList<Integer>> currentPossibleMoves = getPossibleMoves(currentChosen);
+                    for(ArrayList<Integer> al : currentPossibleMoves) {
+                        if(boardLayout[al.get(0)][al.get(1)].isInPlay() &&
+                                areOppositeColors(boardLayout[al.get(0)][al.get(1)].isDarkPiece(), userColor) &&
+                                boardLayout[al.get(0)][al.get(1)].getPieceName().equals("King")) {
+                            checkOnOpponent = true;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        checkOnOpponent = false;
+    }
+
+    public int getNumFaults() {
+        return numFaults;
+    }
+
+    public void setNumFaults(int numFaults) {
+        this.numFaults = numFaults;
+    }
+
+    public String getWinner() {
+        return winner;
+    }
+
+    public void setWinner(String winner) {
+        this.winner = winner;
     }
 
 }

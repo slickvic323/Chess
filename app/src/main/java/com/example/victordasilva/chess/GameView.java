@@ -520,6 +520,17 @@ public class GameView extends SurfaceView implements Runnable {
                                     movingPiece.updatePosition(tempTouchedSquare[1], tempTouchedSquare[0]);
                                     // Enemy Piece is taken down
                                     enemyPiece.setInPlay(false);
+                                    enemyPiece.updatePosition(10, 10);
+
+                                    // Checkmate has been made
+                                    if(enemyPiece.getPieceName().equals("King")) {
+                                        if(gameInfo.getWhoseTurn().equals("Dark")) {
+                                            gameInfo.setWinner("Dark");
+                                        } else {
+                                            gameInfo.setWinner("Light");
+                                        }
+                                        gameInfo.setInProgress(false);
+                                    }
                                     if(!movingPiece.hasMadeFirstMove()) {
                                         movingPiece.setMadeFirstMove(true);
                                     }
@@ -547,6 +558,12 @@ public class GameView extends SurfaceView implements Runnable {
                 // Play the click_sound_2.mp3 sound for a click that resulted in a made move
                 MediaPlayer mp = MediaPlayer.create(context, R.raw.click_sound_2);
                 mp.start();
+
+                // Check if the move has made the current user get a check on the opponent
+                gameInfo.checkForCheck();
+                if(gameInfo.checkOnOpponent) {
+                    // TODO: Send a check notification over to opponent
+                }
             } else {
                 touchedSquare = checkSquareTouch(xVal, yVal);
                 Log.i("touchedSquare", "Touched Square - Vertical: " + touchedSquare[0] + " Horizontal: " + touchedSquare[1]);
@@ -724,6 +741,19 @@ public class GameView extends SurfaceView implements Runnable {
                                                  public void run() {
                                                      gameInfo.setTimeRemaining(gameInfo.getTimeRemaining()-1000);
                                                      timerString = getTimerString(gameInfo.getTimeRemaining());
+                                                     if(gameInfo.getTimeRemaining() <= 0) {
+                                                         gameInfo.setNumFaults(gameInfo.getNumFaults()+1);
+                                                         if(gameInfo.getNumFaults() >= 2) {
+                                                             // Whoever didn't make move in time loses
+                                                             if(gameInfo.getWhoseTurn().equals("Dark")) {
+                                                                 gameInfo.setWinner("Light");
+                                                             } else {
+                                                                 gameInfo.setWinner("Dark");
+                                                             }
+                                                             // Game is over
+                                                             gameInfo.setInProgress(false);
+                                                         }
+                                                     }
                                                  }
                                              },
                                     1000, 1000);
