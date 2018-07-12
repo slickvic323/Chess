@@ -18,7 +18,6 @@ public class GameInfo {
     private long timeRemaining;
     private int[] chosenTile; //0=y 1=x
     public boolean checkOnOpponent;
-    private int numFaults;
     private String winner;
 
 
@@ -29,7 +28,6 @@ public class GameInfo {
         this.timeForTurns = timeForTurns;
         whoseTurn = "Light";
         checkOnOpponent = false;
-        numFaults = 0;
         winner = null;
     }
 
@@ -983,14 +981,6 @@ public class GameInfo {
             }
         }
         checkOnOpponent = false;
-    }
-
-    public int getNumFaults() {
-        return numFaults;
-    }
-
-    public void setNumFaults(int numFaults) {
-        this.numFaults = numFaults;
     }
 
     public String getWinner() {

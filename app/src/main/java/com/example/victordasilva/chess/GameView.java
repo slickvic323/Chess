@@ -231,6 +231,26 @@ public class GameView extends SurfaceView implements Runnable {
                                  public void run() {
                                      gameInfo.setTimeRemaining(gameInfo.getTimeRemaining()-1000);
                                      timerString = getTimerString(gameInfo.getTimeRemaining());
+                                     if(gameInfo.getTimeRemaining() <= 0) {
+                                         // If this is the first offense of going over time, give 30 more seconds
+                                         gameInfo.setTimeRemaining(30000);
+                                         timerString = getTimerString(gameInfo.getTimeRemaining());
+
+                                         if(gameInfo.getWhoseTurn().equals(myInfo.getColor())) {
+                                             myInfo.setNumFaults(myInfo.getNumFaults()+1);
+                                             if(myInfo.getNumFaults() >= 2) {
+                                                 // Whoever didn't make move in time loses
+                                                 if(myInfo.getColor().equals("Dark")) {
+                                                     gameInfo.setWinner("Light");
+                                                 } else {
+                                                     gameInfo.setWinner("Dark");
+                                                 }
+                                                 // Game is over
+                                                 gameInfo.setInProgress(false);
+                                                 myTimer = null;
+                                             }
+                                         }
+                                     }
                                  }
                              },
                     1000, 1000);
@@ -481,6 +501,25 @@ public class GameView extends SurfaceView implements Runnable {
                         checkPaint
                 );
             }
+
+            // Draw Checkmate if the game is in Checkmate
+            if(displayCheckmate) {
+                Paint checkmatePaint = new Paint();
+                checkmatePaint.setColor(Color.rgb(240, 255, 255));
+                checkmatePaint.setStyle(Paint.Style.FILL);
+                checkmatePaint.setTextSize(screenSizeY/12);
+                checkmatePaint.setTextAlign(Paint.Align.CENTER);
+                Typeface checkTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/simply_square.ttf");
+                checkmatePaint.setTypeface(checkTF);
+                canvas.drawText(
+                        "CHECK",
+                        canvas.getWidth()/2,
+                        screenSizeY,
+                        checkmatePaint
+                );
+            }
+
+
 
             //Unlocking the canvas
             surfaceHolder.unlockCanvasAndPost(canvas);
@@ -805,20 +844,23 @@ public class GameView extends SurfaceView implements Runnable {
                                                      gameInfo.setTimeRemaining(gameInfo.getTimeRemaining()-1000);
                                                      timerString = getTimerString(gameInfo.getTimeRemaining());
                                                      if(gameInfo.getTimeRemaining() <= 0) {
-                                                         gameInfo.setNumFaults(gameInfo.getNumFaults()+1);
-                                                         if(gameInfo.getNumFaults() >= 2) {
-                                                             // Whoever didn't make move in time loses
-                                                             if(gameInfo.getWhoseTurn().equals("Dark")) {
-                                                                 gameInfo.setWinner("Light");
-                                                             } else {
-                                                                 gameInfo.setWinner("Dark");
+                                                         // If this is the first offense of going over time, give 30 more seconds
+                                                         gameInfo.setTimeRemaining(30000);
+                                                         timerString = getTimerString(gameInfo.getTimeRemaining());
+
+                                                         if(gameInfo.getWhoseTurn().equals(myInfo.getColor())) {
+                                                             myInfo.setNumFaults(myInfo.getNumFaults()+1);
+                                                             if(myInfo.getNumFaults() >= 2) {
+                                                                 // Whoever didn't make move in time loses
+                                                                 if(myInfo.getColor().equals("Dark")) {
+                                                                     gameInfo.setWinner("Light");
+                                                                 } else {
+                                                                     gameInfo.setWinner("Dark");
+                                                                 }
+                                                                 // Game is over
+                                                                 gameInfo.setInProgress(false);
+                                                                 myTimer = null;
                                                              }
-                                                             // Game is over
-                                                             gameInfo.setInProgress(false);
-                                                         } else {
-                                                             // If this is the first offense of going over time, give 30 more seconds
-                                                             gameInfo.setTimeRemaining(30000);
-                                                             timerString = getTimerString(gameInfo.getTimeRemaining());
                                                          }
                                                      }
                                                  }

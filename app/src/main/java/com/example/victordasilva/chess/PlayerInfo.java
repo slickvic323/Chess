@@ -11,11 +11,14 @@ public class PlayerInfo implements Serializable{
     //Color = "Dark" or "Light"
     private String color;
     private String name;
+    private int numFaults;
+
 
     PlayerInfo(String name, String color) {
         myTurn = false;
         this.name = name;
         this.color = color;
+        numFaults = 0;
     }
 
 
@@ -42,5 +45,13 @@ public class PlayerInfo implements Serializable{
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getNumFaults() {
+        return numFaults;
+    }
+
+    public void setNumFaults(int numFaults) {
+        this.numFaults = numFaults;
     }
 }
