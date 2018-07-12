@@ -91,6 +91,10 @@ public class GameView extends SurfaceView implements Runnable {
     // Adding GameClock Picture
     private Clock clockPic;
 
+    private boolean displayCheckMessage;
+    private String checkColor;
+    private boolean displayCheckmate;
+
     // Adding the Settings button
     private SettingsIcon settingsIcon;
 
@@ -189,6 +193,10 @@ public class GameView extends SurfaceView implements Runnable {
         leftBoard = gameBoard.getX();
         topBoard = gameBoard.getY();
         boardSize = gameBoard.getBoardSize();
+
+        displayCheckMessage = false;
+        checkColor = null;
+        displayCheckmate = false;
 
         // Initializing the settings icon
         settingsIcon = new SettingsIcon(context);
@@ -449,6 +457,31 @@ public class GameView extends SurfaceView implements Runnable {
                     namePaint
             );
 
+            // Draw Check if the game is in Check
+            if(displayCheckMessage) {
+                Paint checkPaint = new Paint();
+                if(checkColor != null) {
+                    if(checkColor.equals("Dark")) {
+                        checkPaint.setColor(Color.rgb(0, 0, 26));
+                    } else {
+                        checkPaint.setColor(Color.rgb(240, 255, 255));
+                    }
+                } else {
+                    checkPaint.setColor(Color.BLACK);
+                }
+                checkPaint.setStyle(Paint.Style.FILL);
+                checkPaint.setTextSize(screenSizeY/12);
+                checkPaint.setTextAlign(Paint.Align.CENTER);
+                Typeface checkTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/simply_square.ttf");
+                checkPaint.setTypeface(checkTF);
+                canvas.drawText(
+                        "CHECK",
+                        canvas.getWidth()/2,
+                        screenSizeY,
+                        checkPaint
+                );
+            }
+
             //Unlocking the canvas
             surfaceHolder.unlockCanvasAndPost(canvas);
         }
@@ -530,6 +563,17 @@ public class GameView extends SurfaceView implements Runnable {
                                             gameInfo.setWinner("Light");
                                         }
                                         gameInfo.setInProgress(false);
+
+                                        // Display the Checkmate message
+                                        displayCheckMessage = false;
+                                        checkColor = null;
+                                        displayCheckmate = true;
+
+                                        // Send over information for the opponent to display checkmate too
+                                        JSONObject jsonObject = new JSONObject();
+                                        jsonObject.put("message_type", 6);
+                                        String message = jsonObject.toString();
+                                        sendReceive.write(message.getBytes());
                                     }
                                     if(!movingPiece.hasMadeFirstMove()) {
                                         movingPiece.setMadeFirstMove(true);
@@ -562,7 +606,14 @@ public class GameView extends SurfaceView implements Runnable {
                 // Check if the move has made the current user get a check on the opponent
                 gameInfo.checkForCheck();
                 if(gameInfo.checkOnOpponent) {
-                    // TODO: Send a check notification over to opponent
+                    Log.i("Check", "Send a check over to the other player!");
+                    sendCheckToOpponent(true);
+                    displayCheckMessage = true;
+                    checkColor = opponentInfo.getColor();
+                } else {
+                    sendCheckToOpponent(false);
+                    displayCheckMessage = false;
+                    checkColor = null;
                 }
             } else {
                 touchedSquare = checkSquareTouch(xVal, yVal);
@@ -574,6 +625,18 @@ public class GameView extends SurfaceView implements Runnable {
             gameInfo.setBoardLayout(boardLayout);
             possibleMoves = gameInfo.getPossibleMoves(touchedSquare);
         }
+    }
+
+    private void sendCheckToOpponent(boolean isCheck) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("message_type", 5);
+        if(isCheck) {
+            jsonObject.put("isCheck", true);
+        } else {
+            jsonObject.put("isCheck", false);
+        }
+        String message = jsonObject.toString();
+        sendReceive.write(message.getBytes());
     }
 
     private void sendMoveToOpponent(int beginX, int beginY, int endX, int endY) {
@@ -752,11 +815,28 @@ public class GameView extends SurfaceView implements Runnable {
                                                              }
                                                              // Game is over
                                                              gameInfo.setInProgress(false);
+                                                         } else {
+                                                             // If this is the first offense of going over time, give 30 more seconds
+                                                             gameInfo.setTimeRemaining(30000);
+                                                             timerString = getTimerString(gameInfo.getTimeRemaining());
                                                          }
                                                      }
                                                  }
                                              },
                                     1000, 1000);
+                        } else if(messageType == 5) {
+                            boolean isCheck = (boolean) jsonObject.get("isCheck");
+                            if(isCheck) {
+                                displayCheckMessage = true;
+                                checkColor = myInfo.getColor();
+                            } else {
+                                displayCheckMessage = false;
+                                checkColor = null;
+                            }
+                        } else if(messageType == 6) {
+                            displayCheckMessage = false;
+                            checkColor = null;
+                            displayCheckmate = true;
                         }
 
                     } catch (ParseException e) {

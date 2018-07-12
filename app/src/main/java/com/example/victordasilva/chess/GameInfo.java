@@ -964,14 +964,15 @@ public class GameInfo {
         // Iterate through all of the pieces that are in play
         for(int i=0;i<boardLayout.length;i++) {
             for(int j=0;j<boardLayout[0].length;j++) {
-                if(boardLayout[i][j].isInPlay() && !areOppositeColors(userColor, boardLayout[i][j].isDarkPiece())) {
+                if(boardLayout[i][j] != null && boardLayout[i][j].isInPlay() && !areOppositeColors(userColor, boardLayout[i][j].isDarkPiece())) {
                     // Check all possible moves for this piece
                     int[] currentChosen = new int[2];
-                    currentChosen[0] = j;
-                    currentChosen[1] = i;
+                    currentChosen[0] = i;
+                    currentChosen[1] = j;
                     ArrayList<ArrayList<Integer>> currentPossibleMoves = getPossibleMoves(currentChosen);
                     for(ArrayList<Integer> al : currentPossibleMoves) {
-                        if(boardLayout[al.get(0)][al.get(1)].isInPlay() &&
+                        if(boardLayout[al.get(0)][al.get(1)] != null &&
+                                boardLayout[al.get(0)][al.get(1)].isInPlay() &&
                                 areOppositeColors(boardLayout[al.get(0)][al.get(1)].isDarkPiece(), userColor) &&
                                 boardLayout[al.get(0)][al.get(1)].getPieceName().equals("King")) {
                             checkOnOpponent = true;
