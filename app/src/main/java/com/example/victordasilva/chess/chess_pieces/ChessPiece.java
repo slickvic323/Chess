@@ -11,6 +11,8 @@ public interface ChessPiece {
 
     int getX();
     int getY();
+    void setX(int x);
+    void setY(int y);
     Bitmap getBitmap();
     int getxSquare();
     int getySquare();

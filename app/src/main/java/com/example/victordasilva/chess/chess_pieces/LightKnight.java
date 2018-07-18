@@ -104,10 +104,12 @@ public class LightKnight implements ChessPiece{
         this.madeFirstMove = madeFirstMove;
     }
 
+    @Override
     public void setX(int x) {
         this.x = x;
     }
 
+    @Override
     public void setY(int y) {
         this.y = y;
     }

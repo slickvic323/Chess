@@ -137,6 +137,14 @@ public class GameView extends SurfaceView implements Runnable {
 
     private GameInfo gameInfo;
 
+    private boolean movementAnimation;
+    private int[] movingIndeces; // 0=startX 1=startY 2=endX 3=endY
+    private ChessPiece animatedPiece;
+    private String movementType;
+    private int animationXSpeed, animationYSpeed;
+    private static Timer animationTimer;
+    private final int movementSpeed = 4;
+
     //These objects will be used for drawing
     private Paint paint;
     private Canvas canvas;
@@ -210,6 +218,15 @@ public class GameView extends SurfaceView implements Runnable {
         checkColor = null;
         displayCheckmate = false;
 
+        // Piece Movement Animation Initialization
+        movementAnimation = false;
+        movingIndeces = new int[4];
+        animatedPiece = null;
+        movementType = null;
+        animationTimer = null;
+        animationXSpeed = 0;
+        animationYSpeed = 0;
+
         // Initializing the settings icon
         settingsIcon = new SettingsIcon(context);
 
@@ -235,46 +252,36 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     private void startTimer() {
-        if(gameInfo.getWhoseTurn().equals(myInfo.getColor())) {
-            myTimer = new Timer();
-            gameInfo.setTimeRemaining(gameInfo.getTimeForTurns());
-            myTimer.schedule(new TimerTask() {
-                                 @Override
-                                 public void run() {
-                                     gameInfo.setTimeRemaining(gameInfo.getTimeRemaining()-1000);
+        myTimer = new Timer();
+        gameInfo.setTimeRemaining(gameInfo.getTimeForTurns());
+        myTimer.schedule(new TimerTask() {
+                             @Override
+                             public void run() {
+                                 gameInfo.setTimeRemaining(gameInfo.getTimeRemaining()-1000);
+                                 timerString = getTimerString(gameInfo.getTimeRemaining());
+                                 if(gameInfo.getTimeRemaining() <= 0) {
+                                     // If this is the first offense of going over time, give 30 more seconds
+                                     gameInfo.setTimeRemaining(30000);
                                      timerString = getTimerString(gameInfo.getTimeRemaining());
-                                     if(gameInfo.getTimeRemaining() <= 0) {
-                                         // If this is the first offense of going over time, give 30 more seconds
-                                         gameInfo.setTimeRemaining(30000);
-                                         timerString = getTimerString(gameInfo.getTimeRemaining());
 
-                                         if(gameInfo.getWhoseTurn().equals(myInfo.getColor())) {
-                                             myInfo.setNumFaults(myInfo.getNumFaults()+1);
-                                             if(myInfo.getNumFaults() >= 2) {
-                                                 // Whoever didn't make move in time loses
-                                                 if(myInfo.getColor().equals("Dark")) {
-                                                     gameInfo.setWinner("Light");
-                                                 } else {
-                                                     gameInfo.setWinner("Dark");
-                                                 }
-                                                 // Game is over
-                                                 gameInfo.setInProgress(false);
-                                                 myTimer = null;
+                                     if(gameInfo.getWhoseTurn().equals(myInfo.getColor())) {
+                                         myInfo.setNumFaults(myInfo.getNumFaults()+1);
+                                         if(myInfo.getNumFaults() >= 2) {
+                                             // Whoever didn't make move in time loses
+                                             if(myInfo.getColor().equals("Dark")) {
+                                                 gameInfo.setWinner("Light");
+                                             } else {
+                                                 gameInfo.setWinner("Dark");
                                              }
+                                             // Game is over
+                                             gameInfo.setInProgress(false);
+                                             myTimer = null;
                                          }
                                      }
                                  }
-                             },
-                    1000, 1000);
-            sendTimer();
-        }
-    }
-
-    private void sendTimer() {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("message_type", 4);
-        String message = jsonObject.toString();
-        sendReceive.write(message.getBytes());
+                             }
+                         },
+                1000, 1000);
     }
 
     private String getTimerString(long ms) {
@@ -354,6 +361,61 @@ public class GameView extends SurfaceView implements Runnable {
             if(sendReceive!=null) {
                 startTimer();
                 connectionEstablished = true;
+            }
+        }
+
+        // Animation Code for piece movement
+        if(movementAnimation && animatedPiece != null) {
+            // If the timer hasn't been instantiated yet, instantiate and start the timer
+            if(animationTimer == null) {
+                animationTimer = new Timer();
+                animationTimer.schedule(new TimerTask() {
+                                     @Override
+                                     public void run() {
+                                        animatedPiece.setX(animatedPiece.getX() + animationXSpeed);
+                                        animatedPiece.setY(animatedPiece.getY() + animationYSpeed);
+
+                                         if(movingIndeces[2] > movingIndeces[0]) {
+                                             //moving right
+                                             if(animatedPiece.getX() >= movingIndeces[2]) {
+                                                 animatedPiece.setX(movingIndeces[2]);
+                                                 animationXSpeed = 0;
+                                             }
+                                         } else {
+                                             // Moving left or neither left nor right
+                                             if(animatedPiece.getX() <= movingIndeces[2]) {
+                                                 animatedPiece.setX(movingIndeces[2]);
+                                                 animationXSpeed = 0;
+                                             }
+                                         }
+                                         if(movingIndeces[3] > movingIndeces[1]) {
+                                             // Moving up
+                                             if (animatedPiece.getY() >= movingIndeces[3]) {
+                                                 animatedPiece.setY(movingIndeces[3]);
+                                                 animationYSpeed = 0;
+                                             }
+                                         } else {
+                                             // Moving down or neither down nor up
+                                             if(animatedPiece.getY() <= movingIndeces[3]) {
+                                                 animatedPiece.setY(movingIndeces[3]);
+                                                 animationYSpeed = 0;
+                                             }
+                                         }
+
+                                         // Animation Over
+                                         if(animationXSpeed == 0 && animationYSpeed == 0) {
+                                             animationTimer.cancel();
+                                             animationTimer.purge();
+                                             animationTimer = null;
+                                             movementAnimation = false;
+                                             movingIndeces = new int[4];
+                                             animatedPiece = null;
+                                             movementType = null;
+                                         }
+
+                                     }
+                                 },
+                        100, 10);
             }
         }
     }
@@ -555,6 +617,16 @@ public class GameView extends SurfaceView implements Runnable {
                 );
             }
 
+            // Drawing a piece moving to its new spot animation
+            if(movementAnimation) {
+                canvas.drawBitmap(
+                        animatedPiece.getBitmap(),
+                        animatedPiece.getX(),
+                        animatedPiece.getY(),
+                        paint
+                );
+            }
+
 
 
             //Unlocking the canvas
@@ -618,6 +690,75 @@ public class GameView extends SurfaceView implements Runnable {
                                     movingPiece.setMadeFirstMove(true);
                                 }
                                 madeMove = true;
+
+                                // Animate the piece moving to the empty space
+                                movementAnimation = true;
+                                animatedPiece = movingPiece;
+                                animatedPiece.updatePosition(tempTouchedSquare[1], tempTouchedSquare[0]);
+                                movingIndeces[2] = animatedPiece.getX(); // endX
+                                movingIndeces[3] = animatedPiece.getY(); // endY
+                                animatedPiece.updatePosition(touchedSquare[1], touchedSquare[0]);
+                                movingIndeces[0] = animatedPiece.getX(); // startX
+                                movingIndeces[1] = animatedPiece.getY(); // startY
+                                movementType = getMovementType(movingIndeces[0], movingIndeces[1], movingIndeces[2], movingIndeces[3], animatedPiece.getPieceName());
+                                if(movementType.equals("Horizontal")) {
+                                    // Moving to the right
+                                    if(movingIndeces[2] > movingIndeces[0]) {
+                                        animationXSpeed = movementSpeed;
+                                        animationYSpeed = 0;
+                                    } else {
+                                        // Moving to the left
+                                        animationXSpeed = -movementSpeed;
+                                        animationYSpeed = 0;
+                                    }
+                                } else if(movementType.equals("Vertical")) {
+                                    // Moving up
+                                    if(movingIndeces[3] < movingIndeces[1]) {
+                                        animationXSpeed = 0;
+                                        animationYSpeed = -movementSpeed;
+                                    } else {
+                                        // Moving down
+                                        animationXSpeed = 0;
+                                        animationYSpeed = movementSpeed;
+                                    }
+                                } else if(movementType.equals("Diagonal")) {
+                                    // Up Left
+                                    if(movingIndeces[2] < movingIndeces[0] && movingIndeces[3] < movingIndeces[1]) {
+                                        animationXSpeed = -movementSpeed;
+                                        animationYSpeed = -movementSpeed;
+                                    } else if(movingIndeces[2] > movingIndeces[0] && movingIndeces[3] < movingIndeces[1]) {
+                                        // Up right
+                                        animationXSpeed = movementSpeed;
+                                        animationYSpeed = -movementSpeed;
+                                    } else if(movingIndeces[2] < movingIndeces[0] && movingIndeces[3] > movingIndeces[1]) {
+                                        // Down left
+                                        animationXSpeed = -movementSpeed;
+                                        animationYSpeed = movementSpeed;
+                                    } else {
+                                        // Down right
+                                        animationXSpeed = movementSpeed;
+                                        animationYSpeed = movementSpeed;
+                                    }
+                                } else {
+                                    // Knight
+                                    int xDiff = movingIndeces[2] - movingIndeces[0];
+                                    int yDiff = movingIndeces[3] - movingIndeces[1];
+                                    if(Math.abs(xDiff) > Math.abs(yDiff)) {
+                                        // x:y = 2:1
+                                        animationXSpeed = movementSpeed;
+                                        animationYSpeed = movementSpeed/2;
+                                    } else {
+                                        // x:y = 1:2
+                                        animationXSpeed = movementSpeed/2;
+                                        animationYSpeed = movementSpeed;
+                                    }
+                                    if(xDiff < 0) {
+                                        animationXSpeed = animationXSpeed * -1;
+                                    }
+                                    if(yDiff < 0) {
+                                        animationYSpeed = animationYSpeed * -1;
+                                    }
+                                }
                             } else {
                                 // Check that the piece is of the opposite color
                                 ChessPiece movingPiece = boardLayout[touchedSquare[0]][touchedSquare[1]];
@@ -657,9 +798,12 @@ public class GameView extends SurfaceView implements Runnable {
                                 }
                             }
                             sendMoveToOpponent(touchedSquare[1], touchedSquare[0], tempTouchedSquare[1], tempTouchedSquare[0]);
-                            myTimer.cancel();
-                            myTimer.purge();
-                            myTimer = null;
+                            if(myTimer!=null) {
+                                myTimer.cancel();
+                                myTimer.purge();
+                                myTimer = null;
+                            }
+                            startTimer();
                             break;
                         }
                     }
@@ -688,6 +832,22 @@ public class GameView extends SurfaceView implements Runnable {
             }
             gameInfo.setBoardLayout(boardLayout);
             possibleMoves = gameInfo.getPossibleMoves(touchedSquare);
+        } else {
+            // Player touched anywhere other than the board
+            touchedSquare = null;
+            possibleMoves = null;
+        }
+    }
+
+    private String getMovementType(int startX, int startY, int endX, int endY, String pieceName) {
+        if(pieceName.equals("Knight")) {
+            return "Knight";
+        } else if(startX != endX && startY != endY) {
+            return "Diagonal";
+        } else if(startY == endY) {
+            return "Horizontal";
+        } else {
+            return "Vertical";
         }
     }
 
@@ -848,6 +1008,15 @@ public class GameView extends SurfaceView implements Runnable {
                             endX = 7-endX;
                             endY = 7-endY;
 
+                            // Cancel the current timer and start a new timer
+                            if(myTimer != null) {
+                                myTimer.cancel();
+                                myTimer.purge();
+                                myTimer = null;
+                            }
+                            startTimer();
+                            verifyDisplayingCheck();
+
                             // Piece that moved
                             ChessPiece movingPiece = boardLayout[beginY][beginX];
 
@@ -856,6 +1025,75 @@ public class GameView extends SurfaceView implements Runnable {
                                 boardLayout[endY][endX] = movingPiece;
                                 movingPiece.updatePosition(endX, endY);
                                 boardLayout[beginY][beginX] = null;
+
+                                // Animate the piece moving to the empty space
+                                movementAnimation = true;
+                                animatedPiece = movingPiece;
+                                animatedPiece.updatePosition(endX, endY);
+                                movingIndeces[2] = animatedPiece.getX(); // endX
+                                movingIndeces[3] = animatedPiece.getY(); // endY
+                                animatedPiece.updatePosition(beginX, beginY);
+                                movingIndeces[0] = animatedPiece.getX(); // startX
+                                movingIndeces[1] = animatedPiece.getY(); // startY
+                                movementType = getMovementType(movingIndeces[0], movingIndeces[1], movingIndeces[2], movingIndeces[3], animatedPiece.getPieceName());
+                                if(movementType.equals("Horizontal")) {
+                                    // Moving to the right
+                                    if(movingIndeces[2] > movingIndeces[0]) {
+                                        animationXSpeed = movementSpeed;
+                                        animationYSpeed = 0;
+                                    } else {
+                                        // Moving to the left
+                                        animationXSpeed = -movementSpeed;
+                                        animationYSpeed = 0;
+                                    }
+                                } else if(movementType.equals("Vertical")) {
+                                    // Moving up
+                                    if(movingIndeces[3] < movingIndeces[1]) {
+                                        animationXSpeed = 0;
+                                        animationYSpeed = -movementSpeed;
+                                    } else {
+                                        // Moving down
+                                        animationXSpeed = 0;
+                                        animationYSpeed = movementSpeed;
+                                    }
+                                } else if(movementType.equals("Diagonal")) {
+                                    // Up Left
+                                    if(movingIndeces[2] < movingIndeces[0] && movingIndeces[3] < movingIndeces[1]) {
+                                        animationXSpeed = -movementSpeed;
+                                        animationYSpeed = -movementSpeed;
+                                    } else if(movingIndeces[2] > movingIndeces[0] && movingIndeces[3] < movingIndeces[1]) {
+                                        // Up right
+                                        animationXSpeed = movementSpeed;
+                                        animationYSpeed = -movementSpeed;
+                                    } else if(movingIndeces[2] < movingIndeces[0] && movingIndeces[3] > movingIndeces[1]) {
+                                        // Down left
+                                        animationXSpeed = -movementSpeed;
+                                        animationYSpeed = movementSpeed;
+                                    } else {
+                                        // Down right
+                                        animationXSpeed = movementSpeed;
+                                        animationYSpeed = movementSpeed;
+                                    }
+                                } else {
+                                    // Knight
+                                    int xDiff = movingIndeces[2] - movingIndeces[0];
+                                    int yDiff = movingIndeces[3] - movingIndeces[1];
+                                    if(Math.abs(xDiff) > Math.abs(yDiff)) {
+                                        // x:y = 2:1
+                                        animationXSpeed = movementSpeed;
+                                        animationYSpeed = movementSpeed/2;
+                                    } else {
+                                        // x:y = 1:2
+                                        animationXSpeed = movementSpeed/2;
+                                        animationYSpeed = movementSpeed;
+                                    }
+                                    if(xDiff < 0) {
+                                        animationXSpeed = animationXSpeed * -1;
+                                    }
+                                    if(yDiff < 0) {
+                                        animationYSpeed = animationYSpeed * -1;
+                                    }
+                                }
                             } else {
                                 // Piece destroyed another piece
                                 ChessPiece destroyedPiece = boardLayout[endY][endX];
@@ -873,42 +1111,8 @@ public class GameView extends SurfaceView implements Runnable {
                                 // Change the turn to the Dark user
                                 gameInfo.setWhoseTurn("Dark");
                             }
-                            myTimer.cancel();
-                            myTimer.purge();
-                            myTimer = null;
-                            startTimer();
-                            verifyDisplayingCheck();
-                        } else if(messageType == 4) {
-                            myTimer = new Timer();
-                            gameInfo.setTimeRemaining(gameInfo.getTimeForTurns());
-                            myTimer.schedule(new TimerTask() {
-                                                 @Override
-                                                 public void run() {
-                                                     gameInfo.setTimeRemaining(gameInfo.getTimeRemaining()-1000);
-                                                     timerString = getTimerString(gameInfo.getTimeRemaining());
-                                                     if(gameInfo.getTimeRemaining() <= 0) {
-                                                         // If this is the first offense of going over time, give 30 more seconds
-                                                         gameInfo.setTimeRemaining(30000);
-                                                         timerString = getTimerString(gameInfo.getTimeRemaining());
 
-                                                         if(gameInfo.getWhoseTurn().equals(opponentInfo.getColor())) {
-                                                             opponentInfo.setNumFaults(opponentInfo.getNumFaults()+1);
-                                                             if(opponentInfo.getNumFaults() >= 2) {
-                                                                 //  Opponent loses
-                                                                 if(opponentInfo.getColor().equals("Dark")) {
-                                                                     gameInfo.setWinner("Light");
-                                                                 } else {
-                                                                     gameInfo.setWinner("Dark");
-                                                                 }
-                                                                 // Game is over
-                                                                 gameInfo.setInProgress(false);
-                                                                 myTimer = null;
-                                                             }
-                                                         }
-                                                     }
-                                                 }
-                                             },
-                                    1000, 1000);
+
                         } else if(messageType == 6) {
                             displayCheckMessage = false;
                             checkColor = null;
