@@ -33,8 +33,11 @@ import com.example.victordasilva.chess.chess_pieces.LightKnight;
 import com.example.victordasilva.chess.chess_pieces.LightPawn;
 import com.example.victordasilva.chess.chess_pieces.LightQueen;
 import com.example.victordasilva.chess.chess_pieces.LightRook;
+import com.example.victordasilva.chess.chess_pieces.NoFaultsImage;
+import com.example.victordasilva.chess.chess_pieces.OneFaultImage;
 import com.example.victordasilva.chess.chess_pieces.PurpleHighlightImage;
 import com.example.victordasilva.chess.chess_pieces.SettingsIcon;
+import com.example.victordasilva.chess.chess_pieces.TwoFaultsImage;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -94,6 +97,11 @@ public class GameView extends SurfaceView implements Runnable {
     private boolean displayCheckMessage;
     private String checkColor;
     private boolean displayCheckmate;
+
+    // Timer Fault Signifier Images
+    private NoFaultsImage noFaultsImage;
+    private OneFaultImage oneFaultImage;
+    private TwoFaultsImage twoFaultsImage;
 
     // Adding the Settings button
     private SettingsIcon settingsIcon;
@@ -190,6 +198,10 @@ public class GameView extends SurfaceView implements Runnable {
         gameBoard = new GameBoard(context, screenSizeX, screenSizeY);
         //Initializing Clock Picture object
         clockPic = new Clock(context, screenSizeX, screenSizeY);
+        // Initializing faults picture object
+        noFaultsImage = new NoFaultsImage(context, screenSizeY);
+        oneFaultImage = new OneFaultImage(context, screenSizeY);
+        twoFaultsImage = new TwoFaultsImage(context, screenSizeY);
         leftBoard = gameBoard.getX();
         topBoard = gameBoard.getY();
         boardSize = gameBoard.getBoardSize();
@@ -516,6 +528,30 @@ public class GameView extends SurfaceView implements Runnable {
                         canvas.getWidth()/2,
                         screenSizeY,
                         checkmatePaint
+                );
+            }
+
+            // Drawing the picture for signifying timer faults
+            if(myInfo.getNumFaults()==0) {
+                canvas.drawBitmap(
+                        noFaultsImage.getBitmap(),
+                        noFaultsImage.getX(),
+                        noFaultsImage.getY(),
+                        paint
+                );
+            } else if(myInfo.getNumFaults()==1) {
+                canvas.drawBitmap(
+                        oneFaultImage.getBitmap(),
+                        oneFaultImage.getX(),
+                        oneFaultImage.getY(),
+                        paint
+                );
+            } else if(myInfo.getNumFaults()>=2) {
+                canvas.drawBitmap(
+                        twoFaultsImage.getBitmap(),
+                        twoFaultsImage.getX(),
+                        twoFaultsImage.getY(),
+                        paint
                 );
             }
 
@@ -855,11 +891,11 @@ public class GameView extends SurfaceView implements Runnable {
                                                          gameInfo.setTimeRemaining(30000);
                                                          timerString = getTimerString(gameInfo.getTimeRemaining());
 
-                                                         if(gameInfo.getWhoseTurn().equals(myInfo.getColor())) {
-                                                             myInfo.setNumFaults(myInfo.getNumFaults()+1);
-                                                             if(myInfo.getNumFaults() >= 2) {
-                                                                 // Whoever didn't make move in time loses
-                                                                 if(myInfo.getColor().equals("Dark")) {
+                                                         if(gameInfo.getWhoseTurn().equals(opponentInfo.getColor())) {
+                                                             opponentInfo.setNumFaults(opponentInfo.getNumFaults()+1);
+                                                             if(opponentInfo.getNumFaults() >= 2) {
+                                                                 //  Opponent loses
+                                                                 if(opponentInfo.getColor().equals("Dark")) {
                                                                      gameInfo.setWinner("Light");
                                                                  } else {
                                                                      gameInfo.setWinner("Dark");
