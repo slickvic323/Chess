@@ -282,10 +282,11 @@ public class ConnectActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
+        unregisterReceiver(mReceiver);
         searching = false;
 
         if(startGameIntent == null) {
-            unregisterReceiver(mReceiver);
+            // unregisterReceiver(mReceiver);
             mManager.cancelConnect(mChannel, new WifiP2pManager.ActionListener() {
                 @Override
                 public void onSuccess() {

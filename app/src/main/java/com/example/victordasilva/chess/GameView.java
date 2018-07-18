@@ -512,7 +512,7 @@ public class GameView extends SurfaceView implements Runnable {
                 Typeface checkTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/simply_square.ttf");
                 checkmatePaint.setTypeface(checkTF);
                 canvas.drawText(
-                        "CHECK",
+                        "CHECKMATE",
                         canvas.getWidth()/2,
                         screenSizeY,
                         checkmatePaint
@@ -642,18 +642,7 @@ public class GameView extends SurfaceView implements Runnable {
                 MediaPlayer mp = MediaPlayer.create(context, R.raw.click_sound_2);
                 mp.start();
 
-                // Check if the move has made the current user get a check on the opponent
-                gameInfo.checkForCheck();
-                if(gameInfo.checkOnOpponent) {
-                    Log.i("Check", "Send a check over to the other player!");
-                    sendCheckToOpponent(true);
-                    displayCheckMessage = true;
-                    checkColor = opponentInfo.getColor();
-                } else {
-                    sendCheckToOpponent(false);
-                    displayCheckMessage = false;
-                    checkColor = null;
-                }
+                verifyDisplayingCheck();
             } else {
                 touchedSquare = checkSquareTouch(xVal, yVal);
                 Log.i("touchedSquare", "Touched Square - Vertical: " + touchedSquare[0] + " Horizontal: " + touchedSquare[1]);
@@ -666,17 +655,32 @@ public class GameView extends SurfaceView implements Runnable {
         }
     }
 
-    private void sendCheckToOpponent(boolean isCheck) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("message_type", 5);
-        if(isCheck) {
-            jsonObject.put("isCheck", true);
+    private void verifyDisplayingCheck() {
+        // Check if the move has made the current user get a check on the opponent
+        gameInfo.checkForCheck();
+        if(gameInfo.check!=null) {
+            Log.i("Check", "Send a check over to the other player!");
+            // sendCheckToOpponent(true);
+            displayCheckMessage = true;
+            checkColor = gameInfo.check;
         } else {
-            jsonObject.put("isCheck", false);
+            // sendCheckToOpponent(false);
+            displayCheckMessage = false;
+            checkColor = null;
         }
-        String message = jsonObject.toString();
-        sendReceive.write(message.getBytes());
     }
+
+//    private void sendCheckToOpponent(boolean isCheck) {
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("message_type", 5);
+//        if(isCheck) {
+//            jsonObject.put("isCheck", true);
+//        } else {
+//            jsonObject.put("isCheck", false);
+//        }
+//        String message = jsonObject.toString();
+//        sendReceive.write(message.getBytes());
+//    }
 
     private void sendMoveToOpponent(int beginX, int beginY, int endX, int endY) {
         JSONObject jsonObject = new JSONObject();
@@ -815,12 +819,14 @@ public class GameView extends SurfaceView implements Runnable {
                             if(boardLayout[endY][endX]==null) {
                                 boardLayout[endY][endX] = movingPiece;
                                 movingPiece.updatePosition(endX, endY);
+                                boardLayout[beginY][beginX] = null;
                             } else {
                                 // Piece destroyed another piece
                                 ChessPiece destroyedPiece = boardLayout[endY][endX];
                                 destroyedPiece.setInPlay(false);
                                 boardLayout[endY][endX] = movingPiece;
                                 movingPiece.updatePosition(endX, endY);
+                                boardLayout[beginY][beginX] = null;
                             }
 
                             String colorMoved = (String) jsonObject.get("colorMoved");
@@ -835,6 +841,7 @@ public class GameView extends SurfaceView implements Runnable {
                             myTimer.purge();
                             myTimer = null;
                             startTimer();
+                            verifyDisplayingCheck();
                         } else if(messageType == 4) {
                             myTimer = new Timer();
                             gameInfo.setTimeRemaining(gameInfo.getTimeForTurns());
@@ -866,15 +873,6 @@ public class GameView extends SurfaceView implements Runnable {
                                                  }
                                              },
                                     1000, 1000);
-                        } else if(messageType == 5) {
-                            boolean isCheck = (boolean) jsonObject.get("isCheck");
-                            if(isCheck) {
-                                displayCheckMessage = true;
-                                checkColor = myInfo.getColor();
-                            } else {
-                                displayCheckMessage = false;
-                                checkColor = null;
-                            }
                         } else if(messageType == 6) {
                             displayCheckMessage = false;
                             checkColor = null;

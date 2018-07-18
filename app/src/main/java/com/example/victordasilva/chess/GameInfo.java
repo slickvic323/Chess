@@ -17,7 +17,7 @@ public class GameInfo {
     private String whoseTurn;
     private long timeRemaining;
     private int[] chosenTile; //0=y 1=x
-    public boolean checkOnOpponent;
+    public String check;
     private String winner;
 
 
@@ -27,7 +27,7 @@ public class GameInfo {
         this.userColor = userColor;
         this.timeForTurns = timeForTurns;
         whoseTurn = "Light";
-        checkOnOpponent = false;
+        check = null;
         winner = null;
     }
 
@@ -953,16 +953,10 @@ public class GameInfo {
 
 
     public void checkForCheck() {
-        boolean userColor;
-        if(getUserColor().equals("Dark")) {
-            userColor = true;
-        } else {
-            userColor = false;
-        }
         // Iterate through all of the pieces that are in play
         for(int i=0;i<boardLayout.length;i++) {
             for(int j=0;j<boardLayout[0].length;j++) {
-                if(boardLayout[i][j] != null && boardLayout[i][j].isInPlay() && !areOppositeColors(userColor, boardLayout[i][j].isDarkPiece())) {
+                if(boardLayout[i][j] != null && boardLayout[i][j].isInPlay()) {
                     // Check all possible moves for this piece
                     int[] currentChosen = new int[2];
                     currentChosen[0] = i;
@@ -971,16 +965,16 @@ public class GameInfo {
                     for(ArrayList<Integer> al : currentPossibleMoves) {
                         if(boardLayout[al.get(0)][al.get(1)] != null &&
                                 boardLayout[al.get(0)][al.get(1)].isInPlay() &&
-                                areOppositeColors(boardLayout[al.get(0)][al.get(1)].isDarkPiece(), userColor) &&
+                                areOppositeColors(boardLayout[al.get(0)][al.get(1)].isDarkPiece(), boardLayout[currentChosen[0]][currentChosen[1]].isDarkPiece()) &&
                                 boardLayout[al.get(0)][al.get(1)].getPieceName().equals("King")) {
-                            checkOnOpponent = true;
+                            check = boardLayout[al.get(0)][al.get(1)].isDarkPiece() ? "Dark":"Light";
                             return;
                         }
                     }
                 }
             }
         }
-        checkOnOpponent = false;
+        check = null;
     }
 
     public String getWinner() {
