@@ -582,8 +582,23 @@ public class GameView extends SurfaceView implements Runnable {
                 );
             }
 
-            // Draw Check if the game is in Check
-            if(displayCheckMessage) {
+
+            // Draw Checkmate if the game is in Checkmate
+            if(displayCheckmate) {
+                Paint checkmatePaint = new Paint();
+                checkmatePaint.setColor(Color.rgb(240, 255, 255));
+                checkmatePaint.setStyle(Paint.Style.FILL);
+                checkmatePaint.setTextSize(screenSizeY/12);
+                checkmatePaint.setTextAlign(Paint.Align.CENTER);
+                Typeface checkTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/simply_square.ttf");
+                checkmatePaint.setTypeface(checkTF);
+                canvas.drawText(
+                        "CHECKMATE",
+                        canvas.getWidth()/2,
+                        screenSizeY,
+                        checkmatePaint
+                );
+            } else if(displayCheckMessage) {
                 Paint checkPaint = new Paint();
                 if(checkColor != null) {
                     if(checkColor.equals("Dark")) {
@@ -604,23 +619,6 @@ public class GameView extends SurfaceView implements Runnable {
                         canvas.getWidth()/2,
                         screenSizeY,
                         checkPaint
-                );
-            }
-
-            // Draw Checkmate if the game is in Checkmate
-            if(displayCheckmate) {
-                Paint checkmatePaint = new Paint();
-                checkmatePaint.setColor(Color.rgb(240, 255, 255));
-                checkmatePaint.setStyle(Paint.Style.FILL);
-                checkmatePaint.setTextSize(screenSizeY/12);
-                checkmatePaint.setTextAlign(Paint.Align.CENTER);
-                Typeface checkTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/simply_square.ttf");
-                checkmatePaint.setTypeface(checkTF);
-                canvas.drawText(
-                        "CHECKMATE",
-                        canvas.getWidth()/2,
-                        screenSizeY,
-                        checkmatePaint
                 );
             }
 
@@ -763,7 +761,6 @@ public class GameView extends SurfaceView implements Runnable {
                 MediaPlayer mp = MediaPlayer.create(context, R.raw.click_sound_2);
                 mp.start();
 
-                verifyDisplayingCheck();
             } else {
                 touchedSquare = checkSquareTouch(xVal, yVal);
                 Log.i("touchedSquare", "Touched Square - Vertical: " + touchedSquare[0] + " Horizontal: " + touchedSquare[1]);
@@ -772,7 +769,8 @@ public class GameView extends SurfaceView implements Runnable {
                 mp.start();
             }
             gameInfo.setBoardLayout(boardLayout);
-            possibleMoves = gameInfo.getPossibleMoves(touchedSquare);
+            possibleMoves = gameInfo.getPossibleMoves(touchedSquare, false);
+            verifyDisplayingCheck();
         } else {
             // Player touched anywhere other than the board
             touchedSquare = null;
@@ -796,28 +794,13 @@ public class GameView extends SurfaceView implements Runnable {
         // Check if the move has made the current user get a check on the opponent
         gameInfo.checkForCheck();
         if(gameInfo.check!=null) {
-            Log.i("Check", "Send a check over to the other player!");
-            // sendCheckToOpponent(true);
             displayCheckMessage = true;
             checkColor = gameInfo.check;
         } else {
-            // sendCheckToOpponent(false);
             displayCheckMessage = false;
             checkColor = null;
         }
     }
-
-//    private void sendCheckToOpponent(boolean isCheck) {
-//        JSONObject jsonObject = new JSONObject();
-//        jsonObject.put("message_type", 5);
-//        if(isCheck) {
-//            jsonObject.put("isCheck", true);
-//        } else {
-//            jsonObject.put("isCheck", false);
-//        }
-//        String message = jsonObject.toString();
-//        sendReceive.write(message.getBytes());
-//    }
 
     private void sendMoveToOpponent(int beginX, int beginY, int endX, int endY) {
         JSONObject jsonObject = new JSONObject();
@@ -955,7 +938,6 @@ public class GameView extends SurfaceView implements Runnable {
                                 myTimer = null;
                             }
                             startTimer();
-                            verifyDisplayingCheck();
 
                             // Piece that moved
                             ChessPiece movingPiece = boardLayout[beginY][beginX];
@@ -987,6 +969,8 @@ public class GameView extends SurfaceView implements Runnable {
                                 gameInfo.setWhoseTurn("Dark");
                             }
 
+                            gameInfo.setBoardLayout(boardLayout);
+                            verifyDisplayingCheck();
 
                         } else if(messageType == 6) {
                             displayCheckMessage = false;

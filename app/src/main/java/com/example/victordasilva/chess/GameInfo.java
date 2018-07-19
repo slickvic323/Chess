@@ -32,7 +32,7 @@ public class GameInfo {
     }
 
     // Returns an array list of all of the possible tiles that the user can move to
-    public ArrayList<ArrayList<Integer>> getPossibleMoves(int[] chosenTile){
+    public ArrayList<ArrayList<Integer>> getPossibleMoves(int[] chosenTile, boolean forCheckingForCheck){
         this.chosenTile = chosenTile;
         if(chosenTile == null) {
             return null;
@@ -44,7 +44,7 @@ public class GameInfo {
         ChessPiece userPiece = boardLayout[chosenTile[0]][chosenTile[1]];
         String pieceName = userPiece.getPieceName();
         boolean isDarkPiece = userPiece.isDarkPiece();
-        if((userColor.equals("Dark") && isDarkPiece) || (userColor.equals("Light") && !isDarkPiece)) {
+        if(forCheckingForCheck || (userColor.equals("Dark") && isDarkPiece) || (userColor.equals("Light") && !isDarkPiece)) {
             switch (pieceName) {
                 case "Bishop":
                     possibleMoves = getBishopMoves(isDarkPiece);
@@ -961,7 +961,11 @@ public class GameInfo {
                     int[] currentChosen = new int[2];
                     currentChosen[0] = i;
                     currentChosen[1] = j;
-                    ArrayList<ArrayList<Integer>> currentPossibleMoves = getPossibleMoves(currentChosen);
+                    ArrayList<ArrayList<Integer>> currentPossibleMoves = getPossibleMoves(currentChosen, true);
+                    if(boardLayout[i][j]!=null) {
+                        boolean isChosenDark = boardLayout[i][j].isDarkPiece();
+                        String chosenPiece = boardLayout[i][j].getPieceName();
+                    }
                     for(ArrayList<Integer> al : currentPossibleMoves) {
                         if(boardLayout[al.get(0)][al.get(1)] != null &&
                                 boardLayout[al.get(0)][al.get(1)].isInPlay() &&
