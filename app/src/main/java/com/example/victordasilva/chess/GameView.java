@@ -99,6 +99,8 @@ public class GameView extends SurfaceView implements Runnable {
     private String checkColor;
     private boolean displayCheckmate;
 
+    private String selectedPiece;
+
     // Timer Fault Signifier Images
     private NoFaultsImage noFaultsImage;
     private OneFaultImage oneFaultImage;
@@ -201,6 +203,8 @@ public class GameView extends SurfaceView implements Runnable {
         clickStartY = -1.0f;
         clickEndX = -1.0f;
         clickEndY = -1.0f;
+
+        selectedPiece = null;
 
         //Initializing the GameBackground object
         gameBackground = new GameBackground(context, screenSizeX, screenSizeY);
@@ -558,6 +562,27 @@ public class GameView extends SurfaceView implements Runnable {
                     namePaint
             );
 
+            // Drawing the currently selected piece
+            if(selectedPiece != null) {
+                Paint selectedPaint = new Paint();
+                if(selectedPiece.substring(0, 4).equals("Dark")) {
+                    selectedPaint.setColor(Color.rgb(0, 0, 26));
+                } else {
+                    selectedPaint.setColor(Color.rgb(240, 255, 255));
+                }
+                selectedPaint.setStyle(Paint.Style.FILL);
+                selectedPaint.setTextSize(screenSizeY/50);
+                Typeface selectedTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/josefinsans_bold.ttf");
+                selectedPaint.setTypeface(selectedTF);
+                selectedPaint.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText(
+                        selectedPiece,
+                        canvas.getWidth()*7/8,
+                        (screenSizeY/50) + 10,
+                        selectedPaint
+                );
+            }
+
             // Drawing the picture for signifying timer faults
             if(myInfo.getNumFaults()==0) {
                 canvas.drawBitmap(
@@ -757,6 +782,7 @@ public class GameView extends SurfaceView implements Runnable {
                     gameInfo.setWhoseTurn("Dark");
                 }
                 touchedSquare = null;
+                setSelectedPiece(touchedSquare);
                 // Play the click_sound_2.mp3 sound for a click that resulted in a made move
                 MediaPlayer mp = MediaPlayer.create(context, R.raw.click_sound_2);
                 mp.start();
@@ -767,6 +793,8 @@ public class GameView extends SurfaceView implements Runnable {
                 // Play the click_sound.mp3 sound for a click that did NOT result in a made move
                 MediaPlayer mp = MediaPlayer.create(context, R.raw.click_sound);
                 mp.start();
+                // Set the selected piece
+                setSelectedPiece(touchedSquare);
             }
             gameInfo.setBoardLayout(boardLayout);
             possibleMoves = gameInfo.getPossibleMoves(touchedSquare, false);
@@ -774,6 +802,7 @@ public class GameView extends SurfaceView implements Runnable {
         } else {
             // Player touched anywhere other than the board
             touchedSquare = null;
+            setSelectedPiece(touchedSquare);
             possibleMoves = null;
         }
     }
@@ -787,6 +816,24 @@ public class GameView extends SurfaceView implements Runnable {
             return "Horizontal";
         } else {
             return "Vertical";
+        }
+    }
+
+    private void setSelectedPiece(int[] touchedSquare) {
+        if(touchedSquare == null) {
+            selectedPiece = null;
+        } else {
+            if(boardLayout[touchedSquare[0]][touchedSquare[1]] != null && boardLayout[touchedSquare[0]][touchedSquare[1]].isInPlay()) {
+                selectedPiece = "";
+                if(boardLayout[touchedSquare[0]][touchedSquare[1]].isDarkPiece()) {
+                    selectedPiece += "Dark ";
+                } else {
+                    selectedPiece += "Light ";
+                }
+                selectedPiece += boardLayout[touchedSquare[0]][touchedSquare[1]].getPieceName();
+            } else {
+                selectedPiece = null;
+            }
         }
     }
 
