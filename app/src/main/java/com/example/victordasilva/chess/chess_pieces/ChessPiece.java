@@ -24,4 +24,5 @@ public interface ChessPiece {
 
     void setInPlay(boolean inPlay);
     void setMadeFirstMove(boolean madeFirstMove);
+
 }

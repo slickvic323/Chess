@@ -36,6 +36,7 @@ import com.example.victordasilva.chess.chess_pieces.LightRook;
 import com.example.victordasilva.chess.chess_pieces.NoFaultsImage;
 import com.example.victordasilva.chess.chess_pieces.OneFaultImage;
 import com.example.victordasilva.chess.chess_pieces.PurpleHighlightImage;
+import com.example.victordasilva.chess.chess_pieces.SelectedPieceBackground;
 import com.example.victordasilva.chess.chess_pieces.SettingsIcon;
 import com.example.victordasilva.chess.chess_pieces.TwoFaultsImage;
 
@@ -100,6 +101,8 @@ public class GameView extends SurfaceView implements Runnable {
     private boolean displayCheckmate;
 
     private String selectedPiece;
+    private SelectedPieceBackground selectedPieceBackground;
+    private ChessPiece selectedPic;
 
     // Timer Fault Signifier Images
     private NoFaultsImage noFaultsImage;
@@ -205,6 +208,8 @@ public class GameView extends SurfaceView implements Runnable {
         clickEndY = -1.0f;
 
         selectedPiece = null;
+        selectedPieceBackground = new SelectedPieceBackground(context, squareSize, screenSizeX, screenSizeY);
+        selectedPic =null;
 
         //Initializing the GameBackground object
         gameBackground = new GameBackground(context, screenSizeX, screenSizeY);
@@ -562,23 +567,43 @@ public class GameView extends SurfaceView implements Runnable {
                     namePaint
             );
 
+            // Draw the selected Piece Background
+            canvas.drawBitmap(
+                    selectedPieceBackground.getBitmap(),
+                    selectedPieceBackground.getX(),
+                    selectedPieceBackground.getY(),
+                    paint
+            );
+
+            if(selectedPic != null) {
+                canvas.drawBitmap(
+                        selectedPic.getBitmap(),
+                        selectedPic.getX(),
+                        selectedPic.getY(),
+                        paint
+                );
+            }
+
             // Drawing the currently selected piece
             if(selectedPiece != null) {
                 Paint selectedPaint = new Paint();
-                if(selectedPiece.substring(0, 4).equals("Dark")) {
-                    selectedPaint.setColor(Color.rgb(0, 0, 26));
-                } else {
-                    selectedPaint.setColor(Color.rgb(240, 255, 255));
-                }
                 selectedPaint.setStyle(Paint.Style.FILL);
                 selectedPaint.setTextSize(screenSizeY/50);
                 Typeface selectedTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/josefinsans_bold.ttf");
                 selectedPaint.setTypeface(selectedTF);
                 selectedPaint.setTextAlign(Paint.Align.CENTER);
+                int startSubstr;
+                if(selectedPiece.substring(0, 4).equals("Dark")) {
+                    selectedPaint.setColor(Color.rgb(0, 0, 26));
+                    startSubstr = 5;
+                } else {
+                    selectedPaint.setColor(Color.rgb(240, 255, 255));
+                    startSubstr = 6;
+                }
                 canvas.drawText(
-                        selectedPiece,
+                        selectedPiece.substring(startSubstr, selectedPiece.length()),
                         canvas.getWidth()*7/8,
-                        (screenSizeY/50) + 10,
+                        squareSize + 5 + (screenSizeY/50) + 5,
                         selectedPaint
                 );
             }
@@ -822,6 +847,7 @@ public class GameView extends SurfaceView implements Runnable {
     private void setSelectedPiece(int[] touchedSquare) {
         if(touchedSquare == null) {
             selectedPiece = null;
+            selectedPic = null;
         } else {
             if(boardLayout[touchedSquare[0]][touchedSquare[1]] != null && boardLayout[touchedSquare[0]][touchedSquare[1]].isInPlay()) {
                 selectedPiece = "";
@@ -831,9 +857,65 @@ public class GameView extends SurfaceView implements Runnable {
                     selectedPiece += "Light ";
                 }
                 selectedPiece += boardLayout[touchedSquare[0]][touchedSquare[1]].getPieceName();
+
+                // Selected Pic
+                ChessPiece sp = boardLayout[touchedSquare[0]][touchedSquare[1]];
+                if(sp.isDarkPiece()) {
+                    switch(sp.getPieceName()) {
+                        case "Bishop":
+                            selectedPic = new DarkBishop(context, squareSize, leftBoard, topBoard);
+                            break;
+                        case "King":
+                            selectedPic = new DarkKing(context, squareSize, leftBoard, topBoard);
+                            break;
+                        case "Knight":
+                            selectedPic = new DarkKnight(context, squareSize, leftBoard, topBoard);
+                            break;
+                        case "Pawn":
+                            selectedPic = new DarkPawn(context, squareSize, leftBoard, topBoard);
+                            break;
+                        case "Queen":
+                            selectedPic = new DarkQueen(context, squareSize, leftBoard, topBoard);
+                            break;
+                        case "Rook":
+                            selectedPic = new DarkRook(context, squareSize, leftBoard, topBoard);
+                            break;
+                        default:
+                            selectedPic = null;
+                    }
+                } else {
+                    switch(sp.getPieceName()) {
+                        case "Bishop":
+                            selectedPic = new LightBishop(context, squareSize, leftBoard, topBoard);
+                            break;
+                        case "King":
+                            selectedPic = new LightKing(context, squareSize, leftBoard, topBoard);
+                            break;
+                        case "Knight":
+                            selectedPic = new LightKnight(context, squareSize, leftBoard, topBoard);
+                            break;
+                        case "Pawn":
+                            selectedPic = new LightPawn(context, squareSize, leftBoard, topBoard);
+                            break;
+                        case "Queen":
+                            selectedPic = new LightQueen(context, squareSize, leftBoard, topBoard);
+                            break;
+                        case "Rook":
+                            selectedPic = new LightRook(context, squareSize, leftBoard, topBoard);
+                            break;
+                        default:
+                            selectedPic = null;
+                    }
+                }
+                if(selectedPic != null) {
+                    selectedPic.setX(screenSizeX*7/8 - (squareSize/2));
+                    selectedPic.setY(5);
+                }
             } else {
                 selectedPiece = null;
+                selectedPic = null;
             }
+
         }
     }
 
