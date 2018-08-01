@@ -286,7 +286,12 @@ public class GameView extends SurfaceView implements Runnable {
                                              }
                                              // Game is over
                                              gameInfo.setInProgress(false);
-                                             myTimer = null;
+                                             // Stop Timer
+                                             if(myTimer!=null) {
+                                                 myTimer.cancel();
+                                                 myTimer.purge();
+                                                 myTimer = null;
+                                             }
                                          }
                                      }
                                  }
@@ -608,28 +613,50 @@ public class GameView extends SurfaceView implements Runnable {
                 );
             }
 
-            // Drawing the picture for signifying timer faults
-            if(myInfo.getNumFaults()==0) {
-                canvas.drawBitmap(
-                        noFaultsImage.getBitmap(),
-                        noFaultsImage.getX(),
-                        noFaultsImage.getY(),
-                        paint
+            if(!displayCheckmate) {
+                Paint tfPaint = new Paint();
+                tfPaint.setColor(Color.rgb(0, 0, 0));
+                tfPaint.setStyle(Paint.Style.FILL);
+                tfPaint.setTextSize(screenSizeY/50);
+                tfPaint.setTextAlign(Paint.Align.CENTER);
+                Typeface timeFaultTF = Typeface.createFromAsset(getResources().getAssets(), "fonts/simply_square.ttf");
+                tfPaint.setTypeface(timeFaultTF);
+                canvas.drawText(
+                        "Timer",
+                        85,
+                        screenSizeY - 100 - screenSizeY/50 ,
+                        tfPaint
                 );
-            } else if(myInfo.getNumFaults()==1) {
-                canvas.drawBitmap(
-                        oneFaultImage.getBitmap(),
-                        oneFaultImage.getX(),
-                        oneFaultImage.getY(),
-                        paint
+                canvas.drawText(
+                        "Faults",
+                        85,
+                        screenSizeY - 95,
+                        tfPaint
                 );
-            } else if(myInfo.getNumFaults()>=2) {
-                canvas.drawBitmap(
-                        twoFaultsImage.getBitmap(),
-                        twoFaultsImage.getX(),
-                        twoFaultsImage.getY(),
-                        paint
-                );
+
+                // Drawing the picture for signifying timer faults
+                if(myInfo.getNumFaults()==0) {
+                    canvas.drawBitmap(
+                            noFaultsImage.getBitmap(),
+                            noFaultsImage.getX(),
+                            noFaultsImage.getY(),
+                            paint
+                    );
+                } else if(myInfo.getNumFaults()==1) {
+                    canvas.drawBitmap(
+                            oneFaultImage.getBitmap(),
+                            oneFaultImage.getX(),
+                            oneFaultImage.getY(),
+                            paint
+                    );
+                } else if(myInfo.getNumFaults()>=2) {
+                    canvas.drawBitmap(
+                            twoFaultsImage.getBitmap(),
+                            twoFaultsImage.getX(),
+                            twoFaultsImage.getY(),
+                            paint
+                    );
+                }
             }
 
 
@@ -762,17 +789,22 @@ public class GameView extends SurfaceView implements Runnable {
 
                                     // Checkmate has been made
                                     if(enemyPiece.getPieceName().equals("King")) {
-                                        if(gameInfo.getWhoseTurn().equals("Dark")) {
-                                            gameInfo.setWinner("Dark");
-                                        } else {
-                                            gameInfo.setWinner("Light");
-                                        }
                                         gameInfo.setInProgress(false);
 
                                         // Display the Checkmate message
                                         displayCheckMessage = false;
                                         checkColor = null;
                                         displayCheckmate = true;
+                                        gameInfo.setInProgress(false);
+                                        // This player won by checkmating the opponent
+                                        gameInfo.setWinner(myInfo.getColor());
+                                        // Stop Timer
+                                        if(myTimer!=null) {
+                                            myTimer.cancel();
+                                            myTimer.purge();
+                                            myTimer = null;
+                                        }
+                                        showWinningMenu();
 
                                         // Send over information for the opponent to display checkmate too
                                         JSONObject jsonObject = new JSONObject();
@@ -830,6 +862,10 @@ public class GameView extends SurfaceView implements Runnable {
             setSelectedPiece(touchedSquare);
             possibleMoves = null;
         }
+    }
+
+    private void showWinningMenu() {
+
     }
 
     private String getMovementType(int startX, int startY, int endX, int endY, String pieceName) {
@@ -1105,6 +1141,16 @@ public class GameView extends SurfaceView implements Runnable {
                             displayCheckMessage = false;
                             checkColor = null;
                             displayCheckmate = true;
+                            gameInfo.setInProgress(false);
+                            // Opponent Won
+                            gameInfo.setWinner(opponentInfo.getColor());
+                            // Stop Timer
+                            if(myTimer!=null) {
+                                myTimer.cancel();
+                                myTimer.purge();
+                                myTimer = null;
+                            }
+                            showWinningMenu();
                         }
 
                     } catch (ParseException e) {
